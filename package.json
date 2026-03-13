@@ -1,0 +1,30 @@
+{
+  "name": "agritrace-ai",
+  "version": "1.0.0",
+  "description": "AI-powered agriculture platform with blockchain supply chain tracking",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "db:migrate": "cd packages/prisma && npx prisma migrate dev",
+    "db:generate": "cd packages/prisma && npx prisma generate",
+    "db:studio": "cd packages/prisma && npx prisma studio"
+  },
+  "devDependencies": {
+    "turbo": "^1.11.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "npm@10.2.0"
+}

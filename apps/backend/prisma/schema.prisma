@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User roles for RBAC
+enum Role {
+  ADMIN
+  FARMER
+  DISTRIBUTOR
+  CONSUMER
+}
+
+// Crop types
+enum CropType {
+  WHEAT
+  RICE
+  CORN
+  SOYBEANS
+  BARLEY
+  OATS
+  CANOLA
+  SORGHUM
+  OTHER
+}
+
+// Growth stages
+enum GrowthStage {
+  PLANTED
+  GERMINATION
+  VEGETATIVE
+  FLOWERING
+  FRUITING
+  MATURING
+  READY_FOR_HARVEST
+  HARVESTED
+}
+
+// Supply chain event types
+enum EventType {
+  PLANTED
+  HARVESTED
+  PROCESSED
+  PACKAGED
+  SHIPPED
+  RECEIVED
+  QUALITY_CHECK
+  RETAIL
+  SOLD
+}
+
+// User model
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role      @default(CONSUMER)
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  farm          Farm?
+  supplyChainEvents SupplyChainEvent[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+// Farm model
+model Farm {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  location        Json     // { lat, lng, address }
+  size            Float    // in hectares
+  certification   String?  // Organic, Fair Trade, etc.
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  crops           Crop[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Crop model
+model Crop {
+  id              String      @id @default(uuid())
+  name            String
+  type            CropType
+  variety         String?
+  plantingDate    DateTime
+  expectedHarvest DateTime?
+  growthStage     GrowthStage @default(PLANTED)
+  area            Float       // in hectares
+  estimatedYield  Float?      // in kg
+  actualYield     Float?
+  farmId          String
+  farm            Farm        @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  products        Product[]
+  predictions     AIPrediction[]
+  supplyChainEvents SupplyChainEvent[]
+  qrCode          String?     @unique
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([farmId])
+  @@index([type])
+  @@index([growthStage])
+}
+
+// Product model (packaged goods from crops)
+model Product {
+  id              String   @id @default(uuid())
+  name            String
+  sku             String   @unique
+  cropId          String
+  crop            Crop     @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  quantity        Float    // quantity in kg or units
+  packagingDate   DateTime
+  expiryDate      DateTime?
+  batchNumber     String
+  storageLocation String?
+  status          String   @default("ACTIVE") // ACTIVE, RECALLED, EXPIRED
+  supplyChainEvents SupplyChainEvent[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([cropId])
+  @@index([sku])
+  @@index([batchNumber])
+  @@index([status])
+}
+
+// AI Prediction model
+model AIPrediction {
+  id            String   @id @default(uuid())
+  cropId        String
+  crop          Crop     @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  predictedYield Float
+  confidence    Float    // 0-1 confidence score
+  factors       Json     // { weather, soil, historical }
+  createdAt     DateTime @default(now())
+
+  @@index([cropId])
+}
+
+// Supply Chain Event model (blockchain reference)
+model SupplyChainEvent {
+  id              String    @id @default(uuid())
+  productId       String    // Product ID or Crop ID
+  eventType       EventType
+  timestamp       DateTime
+  location        String?
+  actorId         String
+  actor           User      @relation(fields: [actorId], references: [id])
+  cropId          String?
+  crop            Crop?     @relation(fields: [cropId], references: [id], onDelete: SetNull)
+  product         Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  metadata        String?   // Additional JSON data
+  transactionHash String?   @unique // Blockchain transaction hash
+  blockNumber     Int?
+  verified        Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  @@index([productId])
+  @@index([eventType])
+  @@index([transactionHash])
+  @@index([cropId])
+}
+
+// Audit log for compliance
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String
+  userId    String
+  timestamp DateTime @default(now())
+  details   Json?
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([entity])
+}

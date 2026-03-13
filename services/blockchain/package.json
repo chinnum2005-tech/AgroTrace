@@ -1,0 +1,16 @@
+{
+  "name": "@agritrace/blockchain",
+  "version": "1.0.0",
+  "description": "Smart contracts for AgriTrace AI supply chain tracking",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.ts",
+    "deploy:mumbai": "npx hardhat run scripts/deploy.ts --network mumbai"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "hardhat": "^2.19.2"
+  }
+}

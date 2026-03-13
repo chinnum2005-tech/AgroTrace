@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: agritrace-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-agritrace}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - agritrace-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: agritrace-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-agritrace}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: ${BACKEND_PORT:-3001}
+      AI_SERVICE_URL: http://ai-service:${AI_SERVICE_PORT:-8000}
+    ports:
+      - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - agritrace-network
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+
+  # AI Service (Python FastAPI)
+  ai-service:
+    build:
+      context: ./services/ai-service
+      dockerfile: Dockerfile
+    container_name: agritrace-ai
+    environment:
+      PORT: ${AI_SERVICE_PORT:-8000}
+    ports:
+      - "${AI_SERVICE_PORT:-8000}:${AI_SERVICE_PORT:-8000}"
+    networks:
+      - agritrace-network
+    volumes:
+      - ./services/ai-service:/app
+
+  # Web Frontend (React + Vite)
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: agritrace-web
+    environment:
+      VITE_BACKEND_URL: ${BACKEND_URL:-http://localhost:3001}
+      VITE_AI_SERVICE_URL: ${AI_SERVICE_URL:-http://localhost:8000}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - agritrace-network
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+
+networks:
+  agritrace-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

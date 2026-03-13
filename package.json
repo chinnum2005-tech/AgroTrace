@@ -18,9 +18,11 @@
     "db:migrate": "cd packages/prisma && npx prisma migrate deploy",
     "db:generate": "cd packages/prisma && npx prisma generate",
     "db:studio": "cd packages/prisma && npx prisma studio",
-    "start": "npm run db:generate; npm run db:migrate; cd apps/backend && npm run start",
-    "render:build": "npm run build; npm run db:generate; npm run db:migrate",
-    "vercel:build": "npm run build; npm run db:generate; npm run db:migrate"
+    "start": "cd apps/backend && npm run start",
+    "postinstall": "npx turbo run build",
+    "render:build": "npm install; cd packages/prisma && npm install && npx prisma generate && cd ../.. && npm run build; cd apps/backend && npm run build",
+    "vercel:build": "npm run build; npm run db:generate; npm run db:migrate",
+    "build:backend": "cd apps/backend && npm run build"
   },
   "devDependencies": {
     "turbo": "^1.11.0",

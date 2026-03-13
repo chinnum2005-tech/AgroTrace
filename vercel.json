@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/backend/package.json",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/backend/src/server.ts"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "@neon-database-url",
+    "JWT_SECRET": "@jwt-secret",
+    "BACKEND_PORT": "3001"
+  },
+  "build": {
+    "env": {
+      "TURBO_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "outputDirectory": "apps/backend/dist"
+}

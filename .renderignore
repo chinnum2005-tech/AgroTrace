@@ -1,0 +1,13 @@
+node_modules
+.git
+*.md
+apps/mobile
+services/ai-service
+services/blockchain
+apps/web
+packages/prisma/migrations
+.env
+.env.local
+.DS_Store
+coverage
+.nyc_output

@@ -163,7 +163,7 @@ async function main() {
   // Create supply chain events
   const wheatEventPlanted = await prisma.supplyChainEvent.create({
     data: {
-      productId: wheatCrop.qrCode!,
+      productId: product.id,
       eventType: 'PLANTED',
       timestamp: new Date('2024-03-01T08:00:00Z'),
       location: 'Green Valley Farm - Field A',
@@ -180,7 +180,7 @@ async function main() {
 
   const wheatEventVegetative = await prisma.supplyChainEvent.create({
     data: {
-      productId: wheatCrop.qrCode!,
+      productId: product.id,
       eventType: 'QUALITY_CHECK',
       timestamp: new Date('2024-05-01T10:30:00Z'),
       location: 'Green Valley Farm - Field A',
@@ -197,7 +197,7 @@ async function main() {
 
   const productEventPackaged = await prisma.supplyChainEvent.create({
     data: {
-      productId: product.sku,
+      productId: product.id,
       eventType: 'PACKAGED',
       timestamp: new Date('2024-07-20T14:00:00Z'),
       location: 'Processing Facility B',
@@ -216,7 +216,7 @@ async function main() {
 
   const productEventShipped = await prisma.supplyChainEvent.create({
     data: {
-      productId: product.sku,
+      productId: product.id,
       eventType: 'SHIPPED',
       timestamp: new Date('2024-07-21T09:00:00Z'),
       location: 'Distribution Center - Dock 5',

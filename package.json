@@ -15,9 +15,12 @@
     "test": "turbo run test",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "db:migrate": "cd packages/prisma && npx prisma migrate dev",
+    "db:migrate": "cd packages/prisma && npx prisma migrate deploy",
     "db:generate": "cd packages/prisma && npx prisma generate",
-    "db:studio": "cd packages/prisma && npx prisma studio"
+    "db:studio": "cd packages/prisma && npx prisma studio",
+    "start": "npm run db:generate; npm run db:migrate; cd apps/backend && npm run start",
+    "render:build": "npm run build; npm run db:generate; npm run db:migrate",
+    "vercel:build": "npm run build; npm run db:generate; npm run db:migrate"
   },
   "devDependencies": {
     "turbo": "^1.11.0",

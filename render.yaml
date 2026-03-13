@@ -15,9 +15,13 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+      - key: PORT
+        value: 10000
       - key: BACKEND_PORT
         value: 10000
       - key: AI_SERVICE_URL
         value: http://localhost:8000
+      - key: CORS_ORIGIN
+        value: '*'
     healthCheckPath: /health
     autoDeploy: true

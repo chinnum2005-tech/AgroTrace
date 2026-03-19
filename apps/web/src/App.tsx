@@ -5,17 +5,23 @@ import { useState, useEffect } from 'react';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import FarmerDashboard from './pages/FarmerDashboard';
+import FarmerDashboard from './pages/FarmerDashboardNew';
 import SupplyChainDashboard from './pages/SupplyChainDashboard';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboardNew';
 import DistributorDashboard from './pages/DistributorDashboard';
 import Marketplace from './pages/Marketplace';
 import Farms from './pages/Farms';
 import Crops from './pages/Crops';
 import SupplyChain from './pages/SupplyChain';
 import Verify from './pages/Verify';
-import ProductTrace from './pages/ProductTrace';
+import ProductTracePro from './pages/ProductTracePro';
 import MapDemo from './pages/MapDemo';
+
+// Components
+import { ToastContainer } from './components/Toast';
+import ErrorBoundary from './components/ErrorBoundary';
+import { NetworkStatus } from './components/NetworkStatus';
+import { DemoModeToggle } from './components/DemoModeToggle';
 
 // Types
 import { User } from './types';
@@ -61,8 +67,12 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
+    <ErrorBoundary>
+      <NetworkStatus />
+      <DemoModeToggle />
+      <Router>
+        <ToastContainer />
+        <Routes>
         {/* Public routes */}
         <Route path="/" element={<Landing />} />
         
@@ -171,7 +181,7 @@ function App() {
         <Route path="/verify" element={<Verify />} />
 
         {/* Product traceability page (public) */}
-        <Route path="/trace/:productId" element={<ProductTrace />} />
+        <Route path="/trace/:productId" element={<ProductTracePro />} />
 
         {/* Map demo page (for testing) */}
         <Route path="/map-demo" element={<MapDemo />} />
@@ -179,7 +189,8 @@ function App() {
         {/* Default redirect */}
         <Route path="/*" element={<Navigate to="/dashboard" />} />
       </Routes>
-    </Router>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

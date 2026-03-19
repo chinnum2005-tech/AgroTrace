@@ -28,6 +28,11 @@
   .gradient-accent {
     @apply bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600;
   }
+  
+  /* Background colors */
+  .bg-background {
+    @apply bg-gray-50;
+  }
 }
 
 /* Custom scrollbar */

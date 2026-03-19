@@ -221,6 +221,8 @@ async function main() {
       timestamp: new Date('2024-07-21T09:00:00Z'),
       location: 'Distribution Center - Dock 5',
       actorId: distributor.id,
+      latitude: 40.7580,
+      longitude: -73.9855,
       metadata: JSON.stringify({
         carrier: 'Fresh Transport Inc.',
         vehicleId: 'TRK-456',
@@ -233,6 +235,98 @@ async function main() {
     },
   });
   console.log('✅ Created Supply Chain Event: SHIPPED (Blockchain)');
+
+  // Add more detailed events for the WOW demo
+  const wheatEventHarvested = await prisma.supplyChainEvent.create({
+    data: {
+      productId: product.id,
+      eventType: 'HARVESTED',
+      timestamp: new Date('2024-07-15T07:30:00Z'),
+      location: 'Green Valley Farm - Field A',
+      actorId: farmer.id,
+      latitude: 40.7128,
+      longitude: -74.0060,
+      metadata: JSON.stringify({
+        harvestMethod: 'Combine harvester',
+        moistureContent: '13.5%',
+        yieldAmount: '2,250 kg',
+        qualityGrade: 'Premium',
+        weatherConditions: 'Sunny, 22°C',
+      }),
+      transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
+      blockNumber: Math.floor(Math.random() * 10000000) + 1000002,
+      verified: true,
+    },
+  });
+  console.log('✅ Created Supply Chain Event: HARVESTED (Blockchain)');
+
+  const wheatEventProcessed = await prisma.supplyChainEvent.create({
+    data: {
+      productId: product.id,
+      eventType: 'PROCESSED',
+      timestamp: new Date('2024-07-18T11:00:00Z'),
+      location: 'Mill Processing Facility',
+      actorId: distributor.id,
+      latitude: 40.7306,
+      longitude: -73.9352,
+      metadata: JSON.stringify({
+        processingType: 'Milling and grading',
+        equipmentUsed: 'Industrial mill #3',
+        outputQuantity: '2,200 kg flour',
+        byproducts: 'Bran and germ separated',
+        qualityChecks: 'Passed all tests',
+      }),
+      transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
+      blockNumber: Math.floor(Math.random() * 10000000) + 1000003,
+      verified: true,
+    },
+  });
+  console.log('✅ Created Supply Chain Event: PROCESSED (Blockchain)');
+
+  const wheatEventDelivered = await prisma.supplyChainEvent.create({
+    data: {
+      productId: product.id,
+      eventType: 'RECEIVED',
+      timestamp: new Date('2024-07-22T15:30:00Z'),
+      location: 'Metro Supermarket - Warehouse',
+      actorId: distributor.id,
+      latitude: 40.7589,
+      longitude: -73.9851,
+      metadata: JSON.stringify({
+        receivedBy: 'Warehouse Manager Tom',
+        conditionOnArrival: 'Excellent',
+        storageAssignment: 'Cold Storage Unit 12',
+        inspectionNotes: 'No damage, proper packaging',
+      }),
+      transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
+      blockNumber: Math.floor(Math.random() * 10000000) + 1000004,
+      verified: true,
+    },
+  });
+  console.log('✅ Created Supply Chain Event: RECEIVED (Blockchain)');
+
+  const wheatEventRetail = await prisma.supplyChainEvent.create({
+    data: {
+      productId: product.id,
+      eventType: 'RETAIL',
+      timestamp: new Date('2024-07-23T08:00:00Z'),
+      location: 'Metro Supermarket - Store #456',
+      actorId: distributor.id,
+      latitude: 40.7614,
+      longitude: -73.9776,
+      metadata: JSON.stringify({
+        shelfLocation: 'Aisle 7, Shelf B',
+        displayType: 'Organic products section',
+        pricePerUnit: '$12.99',
+        stockQuantity: '50 units',
+        promotionalMaterial: 'Organic certification badge displayed',
+      }),
+      transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
+      blockNumber: Math.floor(Math.random() * 10000000) + 1000005,
+      verified: true,
+    },
+  });
+  console.log('✅ Created Supply Chain Event: RETAIL (Blockchain)');
 
   // Create audit logs
   await prisma.auditLog.create({

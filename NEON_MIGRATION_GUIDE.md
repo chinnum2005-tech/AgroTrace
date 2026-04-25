@@ -15,7 +15,7 @@ This project has been configured to use **Neon Serverless Postgres** instead of 
 ### 📋 Configuration Changes
 All environment files now use the Neon connection string format:
 ```
-DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/agritrace?sslmode=require"
+DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/farmconnect?sslmode=require"
 ```
 
 **Note:** The `?sslmode=require` parameter is important for Neon connections!
@@ -41,7 +41,7 @@ After creating your project:
 2. Click **"Connection Details"**
 3. Copy the **connection string** (looks like):
    ```
-   postgresql://username:password@ep-xxx.region.aws.neon.tech/agritrace?sslmode=require
+   postgresql://username:password@ep-xxx.region.aws.neon.tech/farmconnect?sslmode=require
    ```
 
 ### 3️⃣ Update Environment Files
@@ -55,10 +55,10 @@ Replace the placeholder values in all `.env` files with your actual Neon connect
 
 Example:
 ```env
-DATABASE_URL="postgresql://farmconnect_user:abc123xyz@ep-cozy-sunset-123456.us-east-2.aws.neon.tech/agritrace?sslmode=require"
+DATABASE_URL="postgresql://farmconnect_user:abc123xyz@ep-cozy-sunset-123456.us-east-2.aws.neon.tech/farmconnect?sslmode=require"
 POSTGRES_USER="farmconnect_user"
 POSTGRES_PASSWORD="abc123xyz"
-POSTGRES_DB="agritrace"
+POSTGRES_DB="farmconnect"
 ```
 
 ### 4️⃣ Run Database Migrations
@@ -160,7 +160,7 @@ If you have existing data in local PostgreSQL that you want to migrate:
 
 1. Export from local PostgreSQL:
    ```bash
-   pg_dump -U postgres -h localhost agritrace > backup.sql
+   pg_dump -U postgres -h localhost farmconnect > backup.sql
    ```
 
 2. Import to Neon:

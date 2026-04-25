@@ -1,4 +1,4 @@
-# AgriTrace AI - SupplyChain Smart Contract Quick Start 🚀
+# FarmConnect AI - SupplyChain Smart Contract Quick Start 🚀
 
 ## ⚡ Setup in 4 Steps
 

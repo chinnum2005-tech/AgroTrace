@@ -1,8 +1,8 @@
-# 🚀 AgroTrace - Complete Role-Based Marketplace System
+# 🚀 FarmConnect - Complete Role-Based Marketplace System
 
 ## ✅ What's Been Implemented
 
-Your AgroTrace platform now has a **complete multi-vendor marketplace** with role-based access control, transforming it from a simple traceability system into a full agricultural e-commerce platform!
+Your FarmConnect platform now has a **complete multi-vendor marketplace** with role-based access control, transforming it from a simple traceability system into a full agricultural e-commerce platform!
 
 ---
 
@@ -10,7 +10,7 @@ Your AgroTrace platform now has a **complete multi-vendor marketplace** with rol
 
 ### 1️⃣ **FARMER** 👨‍🌾
 **Login Credentials:**
-- Email: `farmer@agritrace.ai`
+- Email: `farmer@farmconnect.in`
 - Password: `farmer123`
 
 **Can:**
@@ -33,7 +33,7 @@ Your AgroTrace platform now has a **complete multi-vendor marketplace** with rol
 
 ### 2️⃣ **DISTRIBUTOR** 🚚
 **Login Credentials:**
-- Email: `distributor@agritrace.ai`
+- Email: `distributor@farmconnect.in`
 - Password: `dist123`
 
 **Can:**
@@ -54,7 +54,7 @@ Your AgroTrace platform now has a **complete multi-vendor marketplace** with rol
 
 ### 3️⃣ **CONSUMER** 🛒
 **Login Credentials:**
-- Email: `consumer@agritrace.ai`
+- Email: `consumer@farmconnect.in`
 - Password: `consumer123`
 
 **Can:**
@@ -356,12 +356,12 @@ if (role === 'CONSUMER') → Dashboard (marketplace focus)
 **0:00 - 0:30** → Problem Statement
 > "Food fraud costs India ₹2,000+ crores yearly. Farmers get low prices, consumers pay high prices. Where does the money go? Middlemen."
 
-**0:30 - 1:00** → Solution: AgroTrace Marketplace
+**0:30 - 1:00** → Solution: FarmConnect Marketplace
 > [Open Landing Page]
-> "AgroTrace connects farmers directly to consumers. No middlemen. Fair prices. Complete transparency."
+> "FarmConnect connects farmers directly to consumers. No middlemen. Fair prices. Complete transparency."
 
 **1:00 - 1:45** → Live Demo: Farmer
-> [Login as farmer@agritrace.ai]
+> [Login as farmer@farmconnect.in]
 > "Farmer registers farm, adds crops, generates QR code. Each QR contains complete product history on blockchain."
 > [Generate QR code]
 
@@ -374,13 +374,13 @@ if (role === 'CONSUMER') → Dashboard (marketplace focus)
 > [Show timeline animation]
 
 **2:30 - 3:00** → Impact & Close
-> "Farmers earn 40% more. Consumers pay 20% less. Everyone wins with transparency. AgroTrace - trust through technology."
+> "Farmers earn 40% more. Consumers pay 20% less. Everyone wins with transparency. FarmConnect - trust through technology."
 
 ---
 
 ## 📈 Competitive Advantages
 
-| Feature | AgroTrace | Traditional Mandi | Other Apps |
+| Feature | FarmConnect | Traditional Mandi | Other Apps |
 |---------|-----------|------------------|------------|
 | Direct Farmer Access | ✅ Yes | ❌ No | ⚠️ Limited |
 | Blockchain Verified | ✅ Yes | ❌ No | ❌ No |
@@ -546,7 +546,7 @@ This project demonstrates:
 
 **Built with ❤️ for Smart India Hackathon 2026**
 
-**AgroTrace - Empowering Farmers, Protecting Consumers, Building Trust.** 🌾🔗
+**FarmConnect - Empowering Farmers, Protecting Consumers, Building Trust.** 🌾🔗
 
 ---
 
@@ -559,10 +559,10 @@ cd apps/backend && npm run dev      # Port 3001
 cd services/ai-service && python main.py  # Port 8000
 
 # Test logins
-Farmer: farmer@agritrace.ai / farmer123
-Distributor: distributor@agritrace.ai / dist123
-Consumer: consumer@agritrace.ai / consumer123
-Admin: admin@agritrace.ai / admin123
+Farmer: farmer@farmconnect.in / farmer123
+Distributor: distributor@farmconnect.in / dist123
+Consumer: consumer@farmconnect.in / consumer123
+Admin: admin@farmconnect.in / admin123
 
 # Access URLs
 Frontend: http://localhost:5173

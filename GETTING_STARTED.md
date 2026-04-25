@@ -1,4 +1,4 @@
-# 🚀 Getting Started with AgriTrace AI
+# 🚀 Getting Started with FarmConnect AI
 
 This guide will help you get the platform up and running in minutes.
 
@@ -182,7 +182,7 @@ VITE_BACKEND_URL=http://localhost:3002
 docker ps
 
 # View PostgreSQL logs
-docker logs agritrace-postgres
+docker logs farmconnect-postgres
 
 # Restart database
 docker-compose restart postgres
@@ -222,7 +222,7 @@ npm run db:generate
 
 - Check existing [GitHub Issues](https://github.com/your-org/FarmConnect/issues)
 - Read the full [Documentation](./docs/)
-- Contact: support@agritrace.ai
+- Contact: support@farmconnect.in
 
 ---
 

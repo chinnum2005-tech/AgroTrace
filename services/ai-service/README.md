@@ -1,4 +1,4 @@
-# AgriTrace AI Service - Crop Yield Prediction API 🌾
+# FarmConnect AI Service - Crop Yield Prediction API 🌾
 
 ## 🚀 Quick Start
 
@@ -14,7 +14,7 @@ Service runs on `http://localhost:8000`
 
 ## 📊 Overview
 
-The AgriTrace AI Service provides **machine learning-powered crop yield predictions** using a Random Forest Regressor model from scikit-learn.
+The FarmConnect AI Service provides **machine learning-powered crop yield predictions** using a Random Forest Regressor model from scikit-learn.
 
 ### Features
 - ✅ **ML-based predictions** using Random Forest algorithm
@@ -307,13 +307,13 @@ joblib==1.3.2             # Model serialization
 ### Build Image
 
 ```bash
-docker build -t agritrace-ai-service .
+docker build -t farmconnect-ai-service .
 ```
 
 ### Run Container
 
 ```bash
-docker run -p 8000:8000 agritrace-ai-service
+docker run -p 8000:8000 farmconnect-ai-service
 ```
 
 ### Using Docker Compose
@@ -352,7 +352,7 @@ FastAPI provides automatic interactive documentation:
 {
   "status": "healthy",
   "timestamp": "2024-03-13T10:30:00",
-  "service": "AgriTrace AI Service"
+  "service": "FarmConnect AI Service"
 }
 ```
 

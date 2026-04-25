@@ -283,7 +283,7 @@ PORT=3001
 NODE_ENV=development
 
 # Database Configuration
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agritrace
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/farmconnect
 
 # JWT Configuration
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
@@ -374,7 +374,7 @@ curl -X POST http://localhost:3001/api/farms \
 
 **Verify Product:**
 ```bash
-curl http://localhost:3001/api/verify/AGRITRACE-WHEAT-001
+curl http://localhost:3001/api/verify/FARMCONNECT-WHEAT-001
 ```
 
 ### Using Postman

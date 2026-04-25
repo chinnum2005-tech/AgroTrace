@@ -1,7 +1,7 @@
 # 🎯 WOW Feature: Advanced QR Code Traceability System
 
 ## Overview
-AgroTrace implements a **world-class product traceability system** that goes far beyond simple QR codes. This is the feature that will make judges say "WOW!" 🚀
+FarmConnect implements a **world-class product traceability system** that goes far beyond simple QR codes. This is the feature that will make judges say "WOW!" 🚀
 
 ---
 
@@ -12,7 +12,7 @@ AgroTrace implements a **world-class product traceability system** that goes far
 - ❌ Basic location data
 - ❌ Static information
 
-### AgroTrace PRO Traceability:
+### FarmConnect PRO Traceability:
 - ✅ **3 Tab Interface** (Timeline, Map, Analytics)
 - ✅ **Blockchain Verification** with transaction hashes
 - ✅ **Confidence Score Charts** showing verification reliability
@@ -47,7 +47,7 @@ AgroTrace implements a **world-class product traceability system** that goes far
   batchNumber: 'WHT-ABC12345',
   totalDistance: '847 km',
   totalDays: '12 days',
-  qrCode: 'AGRITRACE-DEMO'
+  qrCode: 'FARMCONNECT-DEMO'
 }
 ```
 
@@ -273,7 +273,7 @@ Background: Amber-50
 ### **Bottom Call-to-Action Section**
 
 **Elements:**
-- Shield icon with "AgroTrace Blockchain Verification" heading
+- Shield icon with "FarmConnect Blockchain Verification" heading
 - Description text about immutable recording
 - Two action buttons:
 
@@ -562,7 +562,7 @@ Section margins: mb-8/mb-12
 
 ## 📋 Comparison Matrix
 
-| Feature | Basic QR | AgroTrace PRO |
+| Feature | Basic QR | FarmConnect PRO |
 |---------|----------|---------------|
 | Timeline | ✅ Text only | ✅ Rich visual cards |
 | Map | ❌ No | ✅ Interactive GPS map |

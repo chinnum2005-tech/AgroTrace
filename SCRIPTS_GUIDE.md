@@ -51,10 +51,10 @@ Double-click seed-database.bat
 
 **Test Credentials:**
 ```
-Admin:     admin@agritrace.ai / admin123
-Farmer:    farmer@agritrace.ai / farmer123
-Distributor: distributor@agritrace.ai / dist123
-Consumer:  consumer@agritrace.ai / consumer123
+Admin:     admin@farmconnect.in / admin123
+Farmer:    farmer@farmconnect.in / farmer123
+Distributor: distributor@farmconnect.in / dist123
+Consumer:  consumer@farmconnect.in / consumer123
 ```
 
 **When to use:** First time setup or when you need fresh demo data

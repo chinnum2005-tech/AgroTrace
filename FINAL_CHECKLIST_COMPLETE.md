@@ -146,7 +146,7 @@ npm run dev
 
 **Expected Output:**
 ```
-🚀 AgriTrace AI Backend running on port 3001
+🚀 FarmConnect AI Backend running on port 3001
 📊 API available at http://localhost:3001/api
 ```
 

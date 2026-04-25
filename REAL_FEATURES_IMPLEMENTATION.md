@@ -188,9 +188,9 @@ import { getFirestore, collection, addDoc, onSnapshot } from 'firebase/firestore
 
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_KEY",
-  authDomain: "agrotrace.firebaseapp.com",
-  projectId: "agrotrace",
-  storageBucket: "agrotrace.appspot.com",
+  authDomain: "farmconnect.firebaseapp.com",
+  projectId: "farmconnect",
+  storageBucket: "farmconnect.appspot.com",
   messagingSenderId: "123456",
   appId: "1:123456:web:abcdef"
 };

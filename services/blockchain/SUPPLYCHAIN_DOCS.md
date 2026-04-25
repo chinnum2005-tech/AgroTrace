@@ -1,4 +1,4 @@
-# AgriTrace AI - SupplyChain Smart Contract Documentation 🌾
+# FarmConnect AI - SupplyChain Smart Contract Documentation 🌾
 
 ## 🚀 Quick Start
 
@@ -43,7 +43,7 @@ function recordEvent(
 **Parameters:**
 | Name | Type | Description |
 |------|------|-------------|
-| `productId` | string | Unique identifier for the product (e.g., "AGRITRACE-WHEAT-001") |
+| `productId` | string | Unique identifier for the product (e.g., "FARMCONNECT-WHEAT-001") |
 | `eventType` | EventType | Type of event from enum (PLANTED, HARVESTED, etc.) |
 | `location` | string | Location where event occurred (address or coordinates) |
 | `metadata` | string | Additional event data (JSON string recommended) |
@@ -58,7 +58,7 @@ function recordEvent(
 ```javascript
 // Using ethers.js
 const tx = await supplyChain.recordEvent(
-  "AGRITRACE-WHEAT-001",
+  "FARMCONNECT-WHEAT-001",
   0, // PLANTED
   "40.7128,-74.0060",
   JSON.stringify({
@@ -98,7 +98,7 @@ function getProductEvents(string memory productId)
 **Example Usage:**
 ```javascript
 // Using ethers.js
-const events = await supplyChain.getProductEvents("AGRITRACE-WHEAT-001");
+const events = await supplyChain.getProductEvents("FARMCONNECT-WHEAT-001");
 
 events.forEach(event => {
   console.log("Event Type:", event.eventType);
@@ -183,7 +183,7 @@ supplyChain.on("SupplyChainEventRecorded", (productId, eventType, timestamp, act
 });
 
 // Listen for specific product
-const filter = supplyChain.filters.SupplyChainEventRecorded("AGRITRACE-WHEAT-001");
+const filter = supplyChain.filters.SupplyChainEventRecorded("FARMCONNECT-WHEAT-001");
 supplyChain.on(filter, (productId, eventType, timestamp, actor, event) => {
   console.log(`Event for ${productId}:`, eventType);
 });

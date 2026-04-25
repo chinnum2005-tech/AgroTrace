@@ -54,7 +54,7 @@ python main.py
 
 1. Navigate to http://localhost:5173/login
 2. Login with:
-   - Email: `farmer@agritrace.ai`
+   - Email: `farmer@farmconnect.in`
    - Password: `farmer123`
 
 **Say:** "Let me login as John Farmer, who grows organic wheat..."
@@ -65,7 +65,7 @@ python main.py
 
 1. Go to **Crops** page
 2. Click on "Wheat Field A"
-3. Show the QR code: `AGRITRACE-WHEAT-001`
+3. Show the QR code: `FARMCONNECT-WHEAT-001`
 
 **Say:** "Each product gets a unique QR code. When consumers scan this..."
 
@@ -283,10 +283,10 @@ curl http://localhost:3001/api/health
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@agritrace.ai | admin123 |
-| Farmer | farmer@agritrace.ai | farmer123 |
-| Distributor | distributor@agritrace.ai | dist123 |
-| Consumer | consumer@agritrace.ai | consumer123 |
+| Admin | admin@farmconnect.in | admin123 |
+| Farmer | farmer@farmconnect.in | farmer123 |
+| Distributor | distributor@farmconnect.in | dist123 |
+| Consumer | consumer@farmconnect.in | consumer123 |
 
 ---
 

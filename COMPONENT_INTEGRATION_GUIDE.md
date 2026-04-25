@@ -128,7 +128,7 @@ export default function Dashboard() {
   {/* Left: Hero Branding */}
   <div className="hidden md:block">
     <Hero 
-      title="Join AgroTrace Today"
+      title="Join FarmConnect Today"
       subtitle="Join 1,667+ farmers transforming agriculture"
       showIllustration={true}
     />

@@ -1,7 +1,7 @@
-# 📱 AgroTrace UI/UX Upgrade Documentation
+# 📱 FarmConnect UI/UX Upgrade Documentation
 
 ## Overview
-AgroTrace features a **stunning, modern UI** designed to win hackathons with beautiful charts, real-time data visualization, and intuitive user experiences.
+FarmConnect features a **stunning, modern UI** designed to win hackathons with beautiful charts, real-time data visualization, and intuitive user experiences.
 
 ---
 
@@ -532,7 +532,7 @@ import { NewIcon } from 'lucide-react';
 
 ## 🎉 Summary
 
-The AgroTrace UI has been completely redesigned with:
+The FarmConnect UI has been completely redesigned with:
 
 ✅ **Professional dashboards** for each user role  
 ✅ **Beautiful charts** using Recharts library  

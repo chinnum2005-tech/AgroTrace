@@ -1,7 +1,7 @@
-# 🔐 AgroTrace Authentication & Authorization System
+# 🔐 FarmConnect Authentication & Authorization System
 
 ## Overview
-AgroTrace implements a **production-ready** Role-Based Access Control (RBAC) system with JWT authentication, refresh tokens, and audit logging.
+FarmConnect implements a **production-ready** Role-Based Access Control (RBAC) system with JWT authentication, refresh tokens, and audit logging.
 
 ---
 
@@ -284,24 +284,24 @@ GET    /api/verify/:qrCode       // Public (no auth needed)
 
 ```
 👨‍💼 ADMIN
-Email: admin@agritrace.ai
+Email: admin@farmconnect.in
 Password: admin123
 Role: ADMIN
 
 🌾 FARMER
-Email: farmer@agritrace.ai
+Email: farmer@farmconnect.in
 Password: farmer123
 Role: FARMER
 Farm: Green Valley Farm (150.5 hectares)
 Crops: Wheat, Corn, Soybeans
 
 🚚 DISTRIBUTOR
-Email: distributor@agritrace.ai
+Email: distributor@farmconnect.in
 Password: dist123
 Role: DISTRIBUTOR
 
 🛒 CONSUMER
-Email: consumer@agritrace.ai
+Email: consumer@farmconnect.in
 Password: consumer123
 Role: CONSUMER
 ```
@@ -349,7 +349,7 @@ curl -X POST http://localhost:3001/api/auth/register \
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "farmer@agritrace.ai",
+    "email": "farmer@farmconnect.in",
     "password": "farmer123"
   }'
 ```
@@ -420,7 +420,7 @@ JWT_EXPIRES_IN=24h
 JWT_REFRESH_EXPIRES_IN=7d
 
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/agritrace
+DATABASE_URL=postgresql://user:password@localhost:5432/farmconnect
 
 # Server
 PORT=3001

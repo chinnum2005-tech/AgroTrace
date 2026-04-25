@@ -129,7 +129,7 @@ Click "Get Started" button → Should go to login page ✅
 
 ### 4. Test Login
 Use credentials:
-- Email: `farmer@agritrace.ai`
+- Email: `farmer@farmconnect.in`
 - Password: `farmer123`
 
 **Expected:** Redirects to farmer dashboard ✅

@@ -2,7 +2,7 @@
 
 ## 🎯 Project Overview
 
-**Project Name:** AgroTrace AI - Advanced QR Traceability System  
+**Project Name:** FarmConnect AI - Advanced QR Traceability System  
 **Team Size:** [Your team size]  
 **Hackathon:** [Hackathon name]  
 **Development Time:** [X weeks/months]  
@@ -122,7 +122,7 @@ Each event includes:
 
 ### What Makes Us Different:
 
-| Feature | Basic Solutions | AgroTrace PRO |
+| Feature | Basic Solutions | FarmConnect PRO |
 |---------|----------------|---------------|
 | Timeline | Text only | Rich visual cards with animations |
 | Map | ❌ No | ✅ Interactive GPS tracking |
@@ -281,10 +281,10 @@ docker-compose up --build
 ```
 
 ### Test Credentials:
-- **Admin:** admin@agritrace.ai / admin123
-- **Farmer:** farmer@agritrace.ai / farmer123
-- **Distributor:** distributor@agritrace.ai / dist123
-- **Consumer:** consumer@agritrace.ai / consumer123
+- **Admin:** admin@farmconnect.in / admin123
+- **Farmer:** farmer@farmconnect.in / farmer123
+- **Distributor:** distributor@farmconnect.in / dist123
+- **Consumer:** consumer@farmconnect.in / consumer123
 
 ### Direct Demo Link:
 After seeding, open:
@@ -485,7 +485,7 @@ This isn't just a hackathon project. This is a **production-ready platform** rea
 
 ## 🎉 Thank You!
 
-Thank you for considering AgroTrace AI for [Hackathon Name]. 
+Thank you for considering FarmConnect AI for [Hackathon Name]. 
 
 We've poured our hearts into building something that matters - something that can make a real difference in how people interact with their food system.
 

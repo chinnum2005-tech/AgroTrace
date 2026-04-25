@@ -86,22 +86,22 @@
 
 ```
 👑 ADMIN:
-   Email: admin@agritrace.ai
+   Email: admin@farmconnect.in
    Password: admin123
    Access: All admin pages + chatbot
    
 🌾 FARMER:
-   Email: farmer@agritrace.ai
+   Email: farmer@farmconnect.in
    Password: farmer123
    Access: Farmer dashboard + chatbot
    
 🛒 DISTRIBUTOR:
-   Email: distributor@agritrace.ai
+   Email: distributor@farmconnect.in
    Password: dist123
    Access: Distributor dashboard + chatbot
    
 👤 CONSUMER:
-   Email: consumer@agritrace.ai
+   Email: consumer@farmconnect.in
    Password: consumer123
    Access: Consumer features + chatbot
 ```
@@ -111,7 +111,7 @@
 ## 🎯 **PERFECT DEMO SCRIPT (90 seconds)**
 
 ### Opening (0:00-0:15)
-*"Hi, I'm [Your Name], and this is AgroTrace - an AI-powered agricultural traceability platform."*
+*"Hi, I'm [Your Name], and this is FarmConnect - an AI-powered agricultural traceability platform."*
 
 *[Login as admin]*
 
@@ -146,10 +146,10 @@
 ## 💼 **RESUME DESCRIPTIONS**
 
 ### Short Version (1 line):
-> Built AgroTrace, a full-stack agri-tech platform with AI-powered farming assistant, role-based auth, and real-time analytics using React, Node.js, and PostgreSQL.
+> Built FarmConnect, a full-stack agri-tech platform with AI-powered farming assistant, role-based auth, and real-time analytics using React, Node.js, and PostgreSQL.
 
 ### Medium Version (Portfolio):
-> **AgroTrace - AI-Powered AgriTech Platform**
+> **FarmConnect - AI-Powered AgriTech Platform**
 > 
 > Developed a comprehensive agricultural ecosystem connecting farmers, buyers, and distributors. Features include:
 > - AI chatbot assistant for crop and equipment recommendations
@@ -162,7 +162,7 @@
 > Tech Stack: React 18, TypeScript, Node.js, Express, PostgreSQL, Tailwind CSS, Framer Motion
 
 ### Long Version (Interview):
-> *"AgroTrace solves the critical problem of fragmented agricultural decision-making. Farmers often lack access to expert advice on crops, equipment, and best practices.*
+> *"FarmConnect solves the critical problem of fragmented agricultural decision-making. Farmers often lack access to expert advice on crops, equipment, and best practices.*
 >
 > *I built an AI-powered chatbot that provides instant, context-aware recommendations based on land size, crop type, and location. The platform also includes a complete admin portal with role-based access control, allowing administrators to manage users, farms, products, and verifications efficiently.*
 >
@@ -241,7 +241,7 @@ test('chatbot returns crop-specific advice', () => {
 ## 📝 **GITHUB README TEMPLATE**
 
 ```markdown
-# 🌾 AgroTrace - AI-Powered AgriTech Platform
+# 🌾 FarmConnect - AI-Powered AgriTech Platform
 
 [![Deployed](https://img.shields.io/badge/deployed-live-success)](https://your-link.vercel.app)
 [![React](https://img.shields.io/badge/react-18-blue)](https://reactjs.org/)
@@ -305,7 +305,7 @@ A comprehensive agricultural traceability platform with AI-powered farming assis
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/agrotrace.git
+git clone https://github.com/yourusername/farmconnect.git
 
 # Install dependencies
 npm install
@@ -327,10 +327,10 @@ npm run dev
 
 ### Test Credentials
 ```
-Admin: admin@agritrace.ai / admin123
-Farmer: farmer@agritrace.ai / farmer123
-Distributor: distributor@agritrace.ai / dist123
-Consumer: consumer@agritrace.ai / consumer123
+Admin: admin@farmconnect.in / admin123
+Farmer: farmer@farmconnect.in / farmer123
+Distributor: distributor@farmconnect.in / dist123
+Consumer: consumer@farmconnect.in / consumer123
 ```
 
 ### Key URLs
@@ -362,7 +362,7 @@ MIT License
 ### Q1: "What makes your project unique?"
 
 **Perfect Answer:**
-*"Three things set AgroTrace apart:*
+*"Three things set FarmConnect apart:*
 
 *First, the AI chatbot. Instead of just displaying information, it actively helps farmers make decisions about crops, equipment, and best practices. This is real-world impact.*
 
@@ -394,7 +394,7 @@ MIT License
 
 *Third, build a mobile app using Flutter for farmers who prefer smartphones over desktops.*
 
-*These improvements would transform AgroTrace from a great project into an industry-standard product."*
+*These improvements would transform FarmConnect from a great project into an industry-standard product."*
 
 ### Q4: "Explain your tech stack choice"
 
@@ -423,7 +423,7 @@ MIT License
 - [ ] Demo script practiced
 
 ### GitHub Optimization:
-- [ ] Clean repo name (agrotrace)
+- [ ] Clean repo name (farmconnect)
 - [ ] Professional README
 - [ ] Screenshots added
 - [ ] Live demo link
@@ -536,10 +536,10 @@ App Routes: apps/web/src/App.tsx
 
 ### Test Accounts:
 ```
-Admin: admin@agritrace.ai / admin123
-Farmer: farmer@agritrace.ai / farmer123
-Distributor: distributor@agritrace.ai / dist123
-Consumer: consumer@agritrace.ai / consumer123
+Admin: admin@farmconnect.in / admin123
+Farmer: farmer@farmconnect.in / farmer123
+Distributor: distributor@farmconnect.in / dist123
+Consumer: consumer@farmconnect.in / consumer123
 ```
 
 ---

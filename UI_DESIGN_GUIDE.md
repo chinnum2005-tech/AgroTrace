@@ -1,8 +1,8 @@
-# 🎨 AgroTrace UI/UX Design Guide
+# 🎨 FarmConnect UI/UX Design Guide
 
 ## Professional Agri-Tech Platform Design
 
-This guide documents the professional UI/UX implementation for AgroTrace, designed to look like a real startup platform.
+This guide documents the professional UI/UX implementation for FarmConnect, designed to look like a real startup platform.
 
 ---
 
@@ -559,6 +559,6 @@ Before deploying, ensure:
 
 ---
 
-**Your AgroTrace platform now has a professional, modern UI that rivals real agri-tech startups! 🚀**
+**Your FarmConnect platform now has a professional, modern UI that rivals real agri-tech startups! 🚀**
 
 Use this guide to maintain design consistency across all pages and components.

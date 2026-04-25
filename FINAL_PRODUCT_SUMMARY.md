@@ -56,7 +56,7 @@
 ┌─────────────────────────────────────────────┐
 │ Sidebar (280px) │ Main Content Area        │
 │ ─────────────── │ ───────────────────────  │
-│ AgroTrace       │ Dashboard                │
+│ FarmConnect       │ Dashboard                │
 │                 │                          │
 │ [Dashboard]     │ [Stats Cards]            │
 │ [Users]         │ [Charts]                 │
@@ -77,7 +77,7 @@
 └──────────────────┘
 ↓ Click Menu ↓
 ┌──────────────────┐
-│ X  AgroTrace     │
+│ X  FarmConnect     │
 │                  │
 │ [Dashboard]      │
 │ [Users]          │
@@ -93,19 +93,19 @@
 **Login Credentials:**
 ```
 👑 ADMIN:
-   Email: admin@agritrace.ai
+   Email: admin@farmconnect.in
    Password: admin123
    
 🌾 FARMER:
-   Email: farmer@agritrace.ai
+   Email: farmer@farmconnect.in
    Password: farmer123
    
 🛒 DISTRIBUTOR:
-   Email: distributor@agritrace.ai
+   Email: distributor@farmconnect.in
    Password: dist123
    
 👤 CONSUMER:
-   Email: consumer@agritrace.ai
+   Email: consumer@farmconnect.in
    Password: consumer123
 ```
 
@@ -255,7 +255,7 @@ npm run dev
 ## 🎯 **PERFECT DEMO SCRIPT (2 minutes)**
 
 ### Introduction (0:00-0:20)
-*"AgroTrace is a full-stack agricultural traceability platform with enterprise-grade features"*
+*"FarmConnect is a full-stack agricultural traceability platform with enterprise-grade features"*
 
 ### Authentication (0:20-0:40)
 *[Login as admin]*
@@ -288,7 +288,7 @@ npm run dev
 
 Add this to your resume:
 
-> **AgroTrace - Full-Stack AgriTech Platform**
+> **FarmConnect - Full-Stack AgriTech Platform**
 > Built a production-ready agricultural traceability system with role-based authentication, real-time analytics, and AI-powered insights using React, TypeScript, Node.js, and PostgreSQL. Features include protected admin portal, workflow automation, and responsive design.
 
 **Key Technologies:**
@@ -521,10 +521,10 @@ AnalyticsChart   → Data visualization
 
 ### Test Accounts:
 ```
-Admin: admin@agritrace.ai / admin123
-Farmer: farmer@agritrace.ai / farmer123
-Distributor: distributor@agritrace.ai / dist123
-Consumer: consumer@agritrace.ai / consumer123
+Admin: admin@farmconnect.in / admin123
+Farmer: farmer@farmconnect.in / farmer123
+Distributor: distributor@farmconnect.in / dist123
+Consumer: consumer@farmconnect.in / consumer123
 ```
 
 ---

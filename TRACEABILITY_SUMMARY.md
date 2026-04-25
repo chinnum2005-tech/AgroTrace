@@ -322,7 +322,7 @@ npm run dev
 
 ### Competitive Advantage
 
-| Feature | Amazon/Flipkart | AgroTrace |
+| Feature | Amazon/Flipkart | FarmConnect |
 |---------|----------------|-----------|
 | Product origin | ❌ No | ✅ Yes |
 | Journey tracking | ❌ No | ✅ Yes |

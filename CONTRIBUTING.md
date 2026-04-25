@@ -1,6 +1,6 @@
-# Contributing to AgriTrace AI
+# Contributing to FarmConnect AI
 
-Thank you for your interest in contributing to AgriTrace AI! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to FarmConnect AI! This document provides guidelines and instructions for contributing.
 
 ## 🌟 Table of Contents
 
@@ -392,4 +392,4 @@ Contributors will be recognized in:
 - Release notes
 - Annual contributor spotlight (if applicable)
 
-Thank you for contributing to AgriTrace AI! 🌾
+Thank you for contributing to FarmConnect AI! 🌾

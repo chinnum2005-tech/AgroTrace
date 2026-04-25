@@ -1,10 +1,10 @@
-# 🏗️ AgroTrace API Architecture
+# 🏗️ FarmConnect API Architecture
 
 ## Clean API Structure Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AgroTrace API Gateway                     │
+│                    FarmConnect API Gateway                     │
 │                   http://localhost:3001/api                  │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -334,7 +334,7 @@ Rate Limiter: 100 requests per 15 minutes per IP
 Allowed Origins:
 - http://localhost:5173
 - http://localhost:5174
-- https://agritrace.ai
+- https://farmconnect.in
 ```
 
 ### Layer 3: Helmet.js Security Headers
@@ -600,7 +600,7 @@ describe('Farm Management Flow', () => {
 
 ## 📚 Summary
 
-AgroTrace API architecture features:
+FarmConnect API architecture features:
 
 ✅ **Clean RESTful Design** - Resource-based endpoints  
 ✅ **Modular Structure** - Organized by feature  

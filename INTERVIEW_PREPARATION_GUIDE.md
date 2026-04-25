@@ -7,7 +7,7 @@
 ## 🚀 **30-SECOND PITCH** (USE FIRST)
 
 ### Script:
-*"Hi, I'm [Your Name]. I built **AgroTrace**, a full-stack agri-tech platform that connects farmers, buyers, and admins.*
+*"Hi, I'm [Your Name]. I built **FarmConnect**, a full-stack agri-tech platform that connects farmers, buyers, and admins.*
 
 *It includes role-based authentication, an admin dashboard for managing users and farms, and analytics for insights.*
 
@@ -32,7 +32,7 @@
 ## 🔥 **60-SECOND PITCH** (WHEN THEY ASK MORE)
 
 ### Script:
-*"AgroTrace is a full-stack agri-tech platform designed to solve inefficiencies in farm equipment access and decision-making.*
+*"FarmConnect is a full-stack agri-tech platform designed to solve inefficiencies in farm equipment access and decision-making.*
 
 *It has three roles — Admin, Farmer, and Buyer — with secure **role-based authentication** and protected routes.*
 
@@ -63,7 +63,7 @@
 - *Fragmented market access*
 - *Poor decision-making resources*
 
-*AgroTrace solves this by providing a unified platform with AI-powered assistance."*
+*FarmConnect solves this by providing a unified platform with AI-powered assistance."*
 
 #### 2. Solution Overview (30 seconds)
 *"I built a comprehensive ecosystem with three user roles:*
@@ -97,13 +97,13 @@
 ## 🎯 **CUSTOMIZED PITCHES FOR DIFFERENT SCENARIOS**
 
 ### For HR Round:
-*"I built AgroTrace, an agricultural technology platform that helps farmers make better decisions through AI-powered recommendations and connects them directly with buyers. It's like having an agricultural expert available 24/7."*
+*"I built FarmConnect, an agricultural technology platform that helps farmers make better decisions through AI-powered recommendations and connects them directly with buyers. It's like having an agricultural expert available 24/7."*
 
 ### For Technical Round:
-*"AgroTrace is a full-stack application built with React, TypeScript, Node.js, and PostgreSQL. Features include role-based authentication using JWT, protected routes, real-time analytics with Recharts, and an AI chatbot with pattern-matching for farming advice."*
+*"FarmConnect is a full-stack application built with React, TypeScript, Node.js, and PostgreSQL. Features include role-based authentication using JWT, protected routes, real-time analytics with Recharts, and an AI chatbot with pattern-matching for farming advice."*
 
 ### For Startup Interview:
-*"AgroTrace addresses a $100 billion problem in Indian agriculture—fragmented decision-making and equipment access. My platform reduces information asymmetry and connects stakeholders directly. Think 'Amazon for farm equipment' plus 'WebMD for crops'."*
+*"FarmConnect addresses a $100 billion problem in Indian agriculture—fragmented decision-making and equipment access. My platform reduces information asymmetry and connects stakeholders directly. Think 'Amazon for farm equipment' plus 'WebMD for crops'."*
 
 ### For Product Manager Role:
 *"I identified three key user personas: Admins need oversight, Farmers need guidance, Buyers need transparency. I built role-specific experiences with appropriate access controls, analytics dashboards for admins, and an AI assistant for farmers—resulting in a complete ecosystem."*
@@ -249,7 +249,7 @@ return children;
 ### ❓ Q5: "How is your project different from others?"
 
 **Winning Answer:**
-*"Three key differentiators set AgroTrace apart:*
+*"Three key differentiators set FarmConnect apart:*
 
 **1. Real-World Impact 🌾**
 - *Addresses actual problems Indian farmers face daily*
@@ -258,7 +258,7 @@ return children;
 
 **2. Complete Feature Set 📦**
 - *Most projects: Basic CRUD + login*
-- *AgroTrace: Role-based auth + analytics + maps + AI chatbot*
+- *FarmConnect: Role-based auth + analytics + maps + AI chatbot*
 - *Seven admin pages with full functionality—no "Coming Soon" messages*
 
 **3. Production Quality 🏗️**
@@ -290,7 +290,7 @@ return children;
 **0:00-0:30 — Login**
 *[Open login page]*
 *"Let me start by logging in as an administrator"*
-*[Enter: admin@agritrace.ai / admin123]*
+*[Enter: admin@farmconnect.in / admin123]*
 *"Notice the welcome notification and instant dashboard access"*
 
 **0:30-1:00 — Dashboard**
@@ -398,11 +398,11 @@ return children;
 
 **1. Proven Execution**
 - *I don't just learn technologies—I build products with them*
-- *AgroTrace demonstrates I can take ideas from concept to deployment*
+- *FarmConnect demonstrates I can take ideas from concept to deployment*
 
 **2. Problem-Solving Mindset**
 - *I focus on solving real problems, not just writing code*
-- *AgroTrace addresses actual farmer pain points*
+- *FarmConnect addresses actual farmer pain points*
 
 **3. Fast Learner & Adaptable**
 - *Self-taught React, TypeScript, Node.js in months*
@@ -423,7 +423,7 @@ return children;
 *"I specialize in React, TypeScript, Node.js, and PostgreSQL. I focus on building production-ready applications with clean architecture and good UX."*
 
 **Project (45s):**
-*"Recently, I built AgroTrace, an agri-tech platform with role-based authentication, analytics dashboards, and an AI chatbot. It's deployed live and has seven fully functional admin pages."*
+*"Recently, I built FarmConnect, an agri-tech platform with role-based authentication, analytics dashboards, and an AI chatbot. It's deployed live and has seven fully functional admin pages."*
 
 **Career Goal (15s):**
 *"I'm seeking opportunities to apply my skills to challenging real-world problems and grow as a professional developer."*
@@ -433,7 +433,7 @@ return children;
 ### ❓ "What are your strengths?"
 
 **Answer:**
-*"My biggest strength is **taking ownership of problems**. When I built AgroTrace and faced routing issues, I didn't give up—I researched, experimented, and solved it. This persistence applies to everything I build."*
+*"My biggest strength is **taking ownership of problems**. When I built FarmConnect and faced routing issues, I didn't give up—I researched, experimented, and solved it. This persistence applies to everything I build."*
 
 ---
 
@@ -493,7 +493,7 @@ They're just asking about it
 ## 📋 **QUICK REFERENCE CHEAT SHEET**
 
 ### 30-Second Pitch:
-*"Built AgroTrace, full-stack agri-tech with AI recommendations, role-based auth, React + Node.js, deployed live"*
+*"Built FarmConnect, full-stack agri-tech with AI recommendations, role-based auth, React + Node.js, deployed live"*
 
 ### Key Features:
 - Role-based authentication
@@ -510,8 +510,8 @@ They're just asking about it
 
 ### Test Credentials:
 ```
-Admin: admin@agritrace.ai / admin123
-Farmer: farmer@agritrace.ai / farmer123
+Admin: admin@farmconnect.in / admin123
+Farmer: farmer@farmconnect.in / farmer123
 ```
 
 ---

@@ -12,7 +12,7 @@ interface HeroProps {
 
 export default function Hero({ 
   title = "Welcome to FarmConnect",
-  subtitle = "Empowering farmers through AI-powered insights and blockchain traceability",
+  subtitle = "Intelligent Yield Forecasting and secure Farm-to-fork Tracking Framework",
   ctaText = "Get Started",
   onCtaClick,
   showIllustration = true

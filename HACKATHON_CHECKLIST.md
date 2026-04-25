@@ -86,7 +86,7 @@ EOF
 ```
 
 #### Test the Full Flow
-- [ ] Login as farmer@agritrace.ai
+- [ ] Login as farmer@farmconnect.in
 - [ ] Navigate to crops
 - [ ] View wheat crop details
 - [ ] Open traceability page directly

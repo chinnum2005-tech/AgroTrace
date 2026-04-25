@@ -1,12 +1,12 @@
-# 🌾 AgroTrace Platform Overview
+# 🌾 FarmConnect Platform Overview
 
 ## Professional Agri-Tech Startup Platform
 
 ---
 
-## 🎯 What is AgroTrace?
+## 🎯 What is FarmConnect?
 
-AgroTrace is a **blockchain-based food traceability platform** that connects farmers, distributors, and consumers in a transparent agricultural ecosystem.
+FarmConnect is a **blockchain-based food traceability platform** that connects farmers, distributors, and consumers in a transparent agricultural ecosystem.
 
 ### Core Value Proposition
 - ✅ **Farmers**: List products, generate QR codes, track orders
@@ -433,7 +433,7 @@ id, productId, eventType, location, transactionHash, verified
 ### For Developers
 ```bash
 # Clone repository
-git clone https://github.com/your-org/agrotrace.git
+git clone https://github.com/your-org/farmconnect.git
 
 # Install dependencies
 npm install
@@ -523,10 +523,10 @@ npm run dev
 - **Backend Lead:** [Team Member]
 
 ### Communication
-- **Email:** team@agrotrace.com
-- **GitHub:** github.com/agrotrace
+- **Email:** team@farmconnect.com
+- **GitHub:** github.com/farmconnect
 - **Discord:** Join our server
-- **Twitter:** @agrotrace
+- **Twitter:** @farmconnect
 
 ---
 
@@ -537,6 +537,6 @@ Free for educational and commercial use
 
 ---
 
-**AgroTrace - Transforming Agriculture Through Technology** 🌾
+**FarmConnect - Transforming Agriculture Through Technology** 🌾
 
 Built with ❤️ by an amazing team of 4 developers

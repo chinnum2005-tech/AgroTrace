@@ -1,4 +1,4 @@
-# AgriTrace AI Backend - Implementation Complete ✅
+# FarmConnect AI Backend - Implementation Complete ✅
 
 ## 🎯 What Has Been Implemented
 
@@ -123,7 +123,7 @@ npm install
 cp .env.example .env
 
 # Edit .env with your configuration
-# DATABASE_URL=postgresql://user:password@localhost:5432/agritrace
+# DATABASE_URL=postgresql://user:password@localhost:5432/farmconnect
 # JWT_SECRET=your-secret-key
 
 # Generate Prisma client
@@ -219,7 +219,7 @@ curl -X POST http://localhost:3001/api/crops \
 ### 5. Verify Product by QR Code (public endpoint)
 
 ```bash
-curl http://localhost:3001/api/verify/AGRITRACE-WHEAT-001
+curl http://localhost:3001/api/verify/FARMCONNECT-WHEAT-001
 ```
 
 ---
@@ -247,21 +247,21 @@ If you've run the seed script from `packages/prisma/seed.ts`, use these credenti
 
 **Farmer Account:**
 ```
-Email: farmer@agritrace.ai
+Email: farmer@farmconnect.in
 Password: Farmer123!
 Role: FARMER
 ```
 
 **Admin Account:**
 ```
-Email: admin@agritrace.ai
+Email: admin@farmconnect.in
 Password: Admin123!
 Role: ADMIN
 ```
 
 **Consumer Account:**
 ```
-Email: consumer@agritrace.ai
+Email: consumer@farmconnect.in
 Password: Consumer123!
 Role: CONSUMER
 ```
@@ -272,7 +272,7 @@ Role: CONSUMER
 # 1. Login as farmer
 TOKEN=$(curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"farmer@agritrace.ai","password":"Farmer123!"}' \
+  -d '{"email":"farmer@farmconnect.in","password":"Farmer123!"}' \
   | jq -r '.data.token')
 
 # 2. Get my crops
@@ -280,7 +280,7 @@ curl -X GET http://localhost:3001/api/crops/my-crops \
   -H "Authorization: Bearer $TOKEN"
 
 # 3. Verify product (no auth needed)
-curl http://localhost:3001/api/verify/AGRITRACE-WHEAT-001
+curl http://localhost:3001/api/verify/FARMCONNECT-WHEAT-001
 ```
 
 ---

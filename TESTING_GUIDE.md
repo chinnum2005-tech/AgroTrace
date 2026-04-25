@@ -13,7 +13,7 @@ Make sure you have:
 cd apps/backend
 npm run dev
 ```
-Expected output: `🚀 AgriTrace AI Backend running on port 3001`
+Expected output: `🚀 FarmConnect AI Backend running on port 3001`
 
 ### 2️⃣ Start the Frontend
 ```bash

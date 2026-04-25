@@ -1,4 +1,4 @@
-# 🌾 AgroTrace - Complete System Architecture Guide
+# 🌾 FarmConnect - Complete System Architecture Guide
 
 ## Full-Stack Agriculture Traceability Platform
 
@@ -22,7 +22,7 @@
 ## 🏗️ Project Structure
 
 ```
-AgroTrace/
+FarmConnect/
 │
 ├── apps/
 │   ├── web/                          # React Frontend (Vite + TypeScript)
@@ -346,7 +346,7 @@ model SupplyChain {
 
 ## 🔄 Data Flow
 
-### Complete AgroTrace Workflow
+### Complete FarmConnect Workflow
 
 ```
 1. Farmer Registration
@@ -650,7 +650,7 @@ Display animated timeline
 
 2. **Text Format**
    ```
-   AGRITRACE-1
+   FARMCONNECT-1
    ```
 
 **Specifications:**
@@ -820,7 +820,7 @@ docker-compose down
 ### Minute 1: Introduction
 - Show landing page
 - Explain problem: Food fraud, lack of transparency
-- Introduce AgroTrace solution
+- Introduce FarmConnect solution
 
 ### Minute 2: Live Demo
 - Login as farmer
@@ -895,10 +895,10 @@ docker-compose down
 - **API Docs**: Available at `/api-docs`
 - **GitHub Repo**: [Your Repository]
 - **Issue Tracker**: GitHub Issues
-- **Email**: support@agrotrace.com
+- **Email**: support@farmconnect.com
 
 ---
 
 **Built with ❤️ for Smart India Hackathon 2026**
 
-**AgroTrace - From Farm to Fork, Transparent Always.**
+**FarmConnect - From Farm to Fork, Transparent Always.**

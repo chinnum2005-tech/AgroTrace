@@ -1,4 +1,4 @@
-# AgriTrace AI - API Documentation
+# FarmConnect AI - API Documentation
 
 ## Base URL
 ```
@@ -310,7 +310,7 @@ Generate QR code for a crop.
 {
   "success": true,
   "data": {
-    "qrCode": "AGRITRACE-uuid-timestamp",
+    "qrCode": "FARMCONNECT-uuid-timestamp",
     "qrCodeImage": "data:image/png;base64,..."
   },
   "message": "QR code generated successfully"

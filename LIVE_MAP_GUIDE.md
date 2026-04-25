@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your AgroTrace platform now has **live logistics tracking** with an interactive map showing exactly where products are moving from farm → warehouse → customer.
+Your FarmConnect platform now has **live logistics tracking** with an interactive map showing exactly where products are moving from farm → warehouse → customer.
 
 This feature makes your platform look like a **real startup product** used by companies like Amazon, Flipkart, and Delhivery.
 
@@ -379,7 +379,7 @@ import { MarkerClusterGroup } from 'react-leaflet-cluster';
 
 ### Competitive Advantage
 
-| Feature | Amazon | AgroTrace |
+| Feature | Amazon | FarmConnect |
 |---------|--------|-----------|
 | Order Tracking | ✅ Yes | ✅ Yes |
 | **Live Map** | ❌ No | ✅ **Yes** |

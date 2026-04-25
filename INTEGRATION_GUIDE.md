@@ -1,8 +1,8 @@
-# AgriTrace AI - Complete Integration Guide 🌾
+# FarmConnect AI - Complete Integration Guide 🌾
 
 ## 🎉 All Services Implemented!
 
-The AgriTrace AI platform is now **fully integrated** with all services running in Docker containers.
+The FarmConnect AI platform is now **fully integrated** with all services running in Docker containers.
 
 ---
 
@@ -10,7 +10,7 @@ The AgriTrace AI platform is now **fully integrated** with all services running 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     AgriTrace AI Platform                    │
+│                     FarmConnect AI Platform                    │
 └─────────────────────────────────────────────────────────────┘
 
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
@@ -63,7 +63,7 @@ nano .env
 # Database
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-POSTGRES_DB=agritrace
+POSTGRES_DB=farmconnect
 POSTGRES_PORT=5432
 
 # Backend
@@ -89,10 +89,10 @@ docker-compose up --build
 
 **Wait for services to start (2-3 minutes):**
 ```
-✅ agritrace-postgres started
-✅ agritrace-backend started
-✅ agritrace-ai started
-✅ agritrace-web started
+✅ farmconnect-postgres started
+✅ farmconnect-backend started
+✅ farmconnect-ai started
+✅ farmconnect-web started
 ```
 
 ### Step 4: Access Services
@@ -218,14 +218,14 @@ npm run seed
 
 ```bash
 # Connect to PostgreSQL
-docker-compose exec postgres psql -U postgres -d agritrace
+docker-compose exec postgres psql -U postgres -d farmconnect
 
 # Or use a GUI tool like DBeaver or pgAdmin
 # Host: localhost
 # Port: 5432
 # Username: postgres
 # Password: postgres
-# Database: agritrace
+# Database: farmconnect
 ```
 
 ---
@@ -302,7 +302,7 @@ curl -X POST http://localhost:3001/api/supply-chain \
 
 **Web:**
 1. Go to "Verify" page
-2. Enter QR Code: AGRITRACE-WHEAT-001
+2. Enter QR Code: FARMCONNECT-WHEAT-001
 3. View complete product history
 
 **Mobile:**
@@ -495,10 +495,10 @@ docker-compose ps
 
 # Expected output:
 # NAME                   STATUS
-# agritrace-postgres     healthy
-# agritrace-backend      Up
-# agritrace-ai           Up
-# agritrace-web          Up
+# farmconnect-postgres     healthy
+# farmconnect-backend      Up
+# farmconnect-ai           Up
+# farmconnect-web          Up
 ```
 
 ---
@@ -544,10 +544,10 @@ docker-compose exec postgres pg_isready
 docker-compose ps
 
 # Check AI service is accessible
-curl http://agritrace-ai:8000/health
+curl http://farmconnect-ai:8000/health
 
 # Update backend .env
-AI_SERVICE_URL=http://agritrace-ai:8000
+AI_SERVICE_URL=http://farmconnect-ai:8000
 ```
 
 ### Issue: Mobile App Can't Connect
@@ -725,4 +725,4 @@ if (cachedPrediction && !isExpired(cachedPrediction)) {
 **Total Pages:** 6 web + 4 mobile screens  
 **Deployment:** Docker Compose one-command startup  
 
-🎊 **AgriTrace AI Platform is complete and ready for production!** 🎊
+🎊 **FarmConnect AI Platform is complete and ready for production!** 🎊

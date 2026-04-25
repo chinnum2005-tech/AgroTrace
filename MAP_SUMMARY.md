@@ -169,7 +169,7 @@ cd apps/web && npm run dev
 
 ### Competitive Advantage
 
-| Feature | Amazon | AgroTrace |
+| Feature | Amazon | FarmConnect |
 |---------|--------|-----------|
 | Track Orders | ✅ Yes | ✅ Yes |
 | **Live Map** | ❌ No | ✅ **Yes** |

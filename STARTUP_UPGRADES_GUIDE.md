@@ -1,4 +1,4 @@
-# 🚀 AgroTrace - Startup-Level Hackathon Project
+# 🚀 FarmConnect - Startup-Level Hackathon Project
 
 ## Transform Your College Project into a VC-Ready Startup 🌟
 
@@ -6,7 +6,7 @@
 
 ## 🎯 Executive Summary
 
-**AgroTrace** is not just a college project - it's a **production-ready SaaS platform** for agricultural traceability that combines:
+**FarmConnect** is not just a college project - it's a **production-ready SaaS platform** for agricultural traceability that combines:
 
 ✅ Blockchain transparency  
 ✅ AI-powered insights  
@@ -307,7 +307,7 @@ Farmers can't prove their product quality."
 **Minute 0:30 - 1:30: Live Demo - Farmer**
 ```
 [Open landing page]
-→ "Welcome to AgroTrace"
+→ "Welcome to FarmConnect"
 [Login as farmer]
 → "Here's my dashboard"
 [Click 'Generate QR']
@@ -330,7 +330,7 @@ Farmers can't prove their product quality."
 
 **Minute 2:30 - 3:00: Impact & Close**
 ```
-"AgroTrace protects farmers, empowers consumers,
+"FarmConnect protects farmers, empowers consumers,
 and creates transparent food supply chains.
 Join us in building trust through technology."
 ```
@@ -389,7 +389,7 @@ SOM (Serviceable Obtainable Market):
 
 ## 🏆 Competitive Advantages
 
-### What Makes AgroTrace Unique:
+### What Makes FarmConnect Unique:
 
 1. **Full-Stack Integration** ✓
    - Not just UI mockup
@@ -423,7 +423,7 @@ SOM (Serviceable Obtainable Market):
 
 ## 📱 Feature Comparison Matrix
 
-| Feature | AgroTrace | Competitor A | Competitor B |
+| Feature | FarmConnect | Competitor A | Competitor B |
 |---------|-----------|--------------|--------------|
 | QR Generation | ✅ Yes | ❌ No | ⚠️ Basic |
 | Blockchain Proof | ✅ Polygon | ❌ Centralized | ✅ Ethereum |
@@ -547,7 +547,7 @@ SOM (Serviceable Obtainable Market):
 - Farmer challenges
 
 ### Slide 2: Solution
-- AgroTrace platform
+- FarmConnect platform
 - How it works (visual)
 - Key features
 
@@ -587,7 +587,7 @@ SOM (Serviceable Obtainable Market):
 
 **You've built something special.** 
 
-AgroTrace isn't just a hackathon project - it's a **venture-backable startup** with:
+FarmConnect isn't just a hackathon project - it's a **venture-backable startup** with:
 
 ✅ Real technology solving real problems  
 ✅ Professional execution  
@@ -620,7 +620,7 @@ AgroTrace isn't just a hackathon project - it's a **venture-backable startup** w
 
 **Built with ❤️ for Smart India Hackathon 2026**
 
-**AgroTrace - From Farm to Fork, Transparent Always.** 🌾🔗
+**FarmConnect - From Farm to Fork, Transparent Always.** 🌾🔗
 
 ---
 

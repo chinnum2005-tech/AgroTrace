@@ -1,8 +1,8 @@
-# 🎉 AgriTrace AI - Project Generation Complete!
+# 🎉 FarmConnect AI - Project Generation Complete!
 
 ## ✅ What Has Been Created
 
-Congratulations! A complete, production-ready monorepo for the AgriTrace AI platform has been generated. Here's what you now have:
+Congratulations! A complete, production-ready monorepo for the FarmConnect AI platform has been generated. Here's what you now have:
 
 ---
 

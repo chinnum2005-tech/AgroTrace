@@ -1,4 +1,4 @@
-# AgriTrace AI Service - Quick Start Guide 🚀
+# FarmConnect AI Service - Quick Start Guide 🚀
 
 ## ⚡ Setup in 3 Steps
 
@@ -144,12 +144,12 @@ curl -X POST http://localhost:8000/predict/yield \
 
 ### Build Image
 ```bash
-docker build -t agritrace-ai-service .
+docker build -t farmconnect-ai-service .
 ```
 
 ### Run Container
 ```bash
-docker run -p 8000:8000 agritrace-ai-service
+docker run -p 8000:8000 farmconnect-ai-service
 ```
 
 ### Using Docker Compose
@@ -173,7 +173,7 @@ curl http://localhost:8000/health
 {
   "status": "healthy",
   "timestamp": "2024-03-13T10:30:00",
-  "service": "AgriTrace AI Service"
+  "service": "FarmConnect AI Service"
 }
 ```
 

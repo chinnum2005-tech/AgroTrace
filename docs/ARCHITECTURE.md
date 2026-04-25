@@ -1,4 +1,4 @@
-# AgriTrace AI - Architecture Overview
+# FarmConnect AI - Architecture Overview
 
 ## System Architecture Diagram
 

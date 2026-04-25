@@ -1,4 +1,4 @@
-# 🌾 AgroTrace - QR Code Generation & Verification Guide
+# 🌾 FarmConnect - QR Code Generation & Verification Guide
 
 ## Complete Implementation for Smart India Hackathon Demo
 
@@ -95,7 +95,7 @@ http://localhost:5174/verify
 ```
 
 **2. Enter Product ID**
-- Type the batch ID (e.g., "1" or "AGRITRACE-1")
+- Type the batch ID (e.g., "1" or "FARMCONNECT-1")
 - Or scan QR code if you have a scanner
 
 **3. Click "Verify Product"**
@@ -442,4 +442,4 @@ For issues or questions:
 
 **Good luck with your Smart India Hackathon demo! 🚀**
 
-Your AgroTrace platform is now fully functional with professional QR code generation and verification!
+Your FarmConnect platform is now fully functional with professional QR code generation and verification!

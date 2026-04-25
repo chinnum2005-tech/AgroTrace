@@ -283,8 +283,8 @@ curl -X POST http://localhost:8000/predict/yield \
 
 **Using Docker:**
 ```bash
-docker build -t agritrace-ai-service .
-docker run -p 8000:8000 agritrace-ai-service
+docker build -t farmconnect-ai-service .
+docker run -p 8000:8000 farmconnect-ai-service
 ```
 
 **Using Docker Compose:**

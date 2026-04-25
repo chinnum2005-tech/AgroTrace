@@ -1,4 +1,4 @@
-# AgriTrace AI Backend API Documentation
+# FarmConnect AI Backend API Documentation
 
 ## 🚀 Quick Start
 
@@ -245,7 +245,7 @@ Authorization: Bearer <admin_token>
       "expectedHarvest": "2024-07-15",
       "area": 50.0,
       "growthStage": "VEGETATIVE",
-      "qrCode": "AGRITRACE-WHEAT-001",
+      "qrCode": "FARMCONNECT-WHEAT-001",
       "farm": {
         "id": "uuid",
         "name": "Green Valley Farm",
@@ -287,7 +287,7 @@ Authorization: Bearer <farmer_token>
       "expectedHarvest": "2024-07-15",
       "area": 50.0,
       "growthStage": "VEGETATIVE",
-      "qrCode": "AGRITRACE-WHEAT-001",
+      "qrCode": "FARMCONNECT-WHEAT-001",
       "farmId": "uuid",
       "createdAt": "2024-03-01T00:00:00Z",
       "updatedAt": "2024-03-01T00:00:00Z"
@@ -333,7 +333,7 @@ Authorization: Bearer <farmer_token>
     "expectedHarvest": "2024-07-15T00:00:00Z",
     "area": 50.0,
     "growthStage": "PLANTED",
-    "qrCode": "AGRITRACE-WHEAT-001",
+    "qrCode": "FARMCONNECT-WHEAT-001",
     "farmId": "uuid",
     "createdAt": "2024-03-01T00:00:00Z",
     "updatedAt": "2024-03-01T00:00:00Z"
@@ -394,7 +394,7 @@ Authorization: Bearer <farmer_token>
 
 **Example:**
 ```
-GET /api/verify/AGRITRACE-WHEAT-001
+GET /api/verify/FARMCONNECT-WHEAT-001
 ```
 
 **Response (200):**
@@ -408,7 +408,7 @@ GET /api/verify/AGRITRACE-WHEAT-001
       "type": "WHEAT",
       "variety": "Hard Red Winter",
       "growthStage": "READY_FOR_HARVEST",
-      "qrCode": "AGRITRACE-WHEAT-001",
+      "qrCode": "FARMCONNECT-WHEAT-001",
       "farm": {
         "name": "Green Valley Farm",
         "location": {
@@ -468,7 +468,7 @@ Authorization: Bearer <farmer_token>
 {
   "success": true,
   "data": {
-    "qrCode": "AGRITRACE-WHEAT-001",
+    "qrCode": "FARMCONNECT-WHEAT-001",
     "qrCodeImage": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
   }
 }
@@ -610,7 +610,7 @@ curl -X POST http://localhost:3001/api/crops \
 
 ### Verify Product
 ```bash
-curl http://localhost:3001/api/verify/AGRITRACE-WHEAT-001
+curl http://localhost:3001/api/verify/FARMCONNECT-WHEAT-001
 ```
 
 ---
@@ -625,7 +625,7 @@ PORT=3001
 NODE_ENV=development
 
 # Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agritrace
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/farmconnect
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key-change-in-production

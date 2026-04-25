@@ -23,10 +23,10 @@ type UserRole = 'ADMIN' | 'FARMER' | 'DISTRIBUTOR' | 'CONSUMER';
 
 ✅ **Mock Users Database**
 ```typescript
-Admin User        → admin@agritrace.ai / admin123
-Farmer User       → farmer@agritrace.ai / farmer123
-Distributor User  → distributor@agritrace.ai / dist123
-Consumer User     → consumer@agritrace.ai / consumer123
+Admin User        → admin@farmconnect.in / admin123
+Farmer User       → farmer@farmconnect.in / farmer123
+Distributor User  → distributor@farmconnect.in / dist123
+Consumer User     → consumer@farmconnect.in / consumer123
 ```
 
 ✅ **Features**
@@ -248,7 +248,7 @@ function Dashboard() {
 ### Test Scenario 1: Admin Login
 ```
 1. Go to http://localhost:5173/login
-2. Login: admin@agritrace.ai / admin123
+2. Login: admin@farmconnect.in / admin123
 3. Should see: Welcome toast
 4. Navigate to: /admin/users
 5. Should see: Users management page ✅
@@ -257,7 +257,7 @@ function Dashboard() {
 ### Test Scenario 2: Farmer Blocked
 ```
 1. Logout
-2. Login: farmer@agritrace.ai / farmer123
+2. Login: farmer@farmconnect.in / farmer123
 3. Try to access: /admin/users
 4. Should see: Redirect to home + error toast ❌
 5. Reason: Farmer doesn't have ADMIN role
@@ -422,14 +422,14 @@ const login = async (email: string, password: string): Promise<boolean> => {
 
 **Step 1 - Admin Access:**
 1. Open `/login`
-2. Login as: `admin@agritrace.ai` / `admin123`
+2. Login as: `admin@farmconnect.in` / `admin123`
 3. *"Notice the welcome message and instant dashboard access"*
 4. Navigate to `/admin/users`
 5. *"Full admin privileges - I can manage all users"*
 
 **Step 2 - Role Restriction:**
 1. Logout
-2. Login as: `farmer@agritrace.ai` / `farmer123`
+2. Login as: `farmer@farmconnect.in` / `farmer123`
 3. Try to access `/admin/users`
 4. *"Watch this - redirected immediately with error message"*
 5. *"Farmers can't access admin features - security by design"*
@@ -477,22 +477,22 @@ const login = async (email: string, password: string): Promise<boolean> => {
 ### Test Credentials:
 ```
 ADMIN:
-  Email: admin@agritrace.ai
+  Email: admin@farmconnect.in
   Password: admin123
   Access: All admin pages ✅
 
 FARMER:
-  Email: farmer@agritrace.ai
+  Email: farmer@farmconnect.in
   Password: farmer123
   Access: Farmer dashboard only ❌ Admin blocked
 
 DISTRIBUTOR:
-  Email: distributor@agritrace.ai
+  Email: distributor@farmconnect.in
   Password: dist123
   Access: Distributor dashboard only ❌ Admin blocked
 
 CONSUMER:
-  Email: consumer@agritrace.ai
+  Email: consumer@farmconnect.in
   Password: consumer123
   Access: Consumer features only ❌ Admin blocked
 ```

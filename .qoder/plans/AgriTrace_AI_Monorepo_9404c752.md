@@ -1,4 +1,4 @@
-# AgriTrace AI Monorepo Architecture Plan
+# FarmConnect AI Monorepo Architecture Plan
 
 ## Project Structure
 

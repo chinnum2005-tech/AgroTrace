@@ -1,4 +1,4 @@
-# AgriTrace AI Backend - Quick Start Guide 🚀
+# FarmConnect AI Backend - Quick Start Guide 🚀
 
 ## ⚡ Setup in 5 Steps
 
@@ -24,7 +24,7 @@ This installs all required packages:
 cp .env.example .env
 
 # Edit .env with your settings:
-# - DATABASE_URL=postgresql://user:pass@localhost:5432/agritrace
+# - DATABASE_URL=postgresql://user:pass@localhost:5432/farmconnect
 # - JWT_SECRET=your-secret-key-here
 # - PORT=3001
 ```
@@ -33,7 +33,7 @@ cp .env.example .env
 ```env
 PORT=3001
 NODE_ENV=development
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agritrace
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/farmconnect
 JWT_SECRET=change-this-to-a-random-string-in-production
 CORS_ORIGIN=http://localhost:5173
 ```
@@ -51,11 +51,11 @@ docker-compose up -d postgres
 **Option B: Local PostgreSQL**
 ```bash
 # Create database manually
-createdb agritrace
+createdb farmconnect
 
 # Or use psql
 psql -U postgres
-CREATE DATABASE agritrace;
+CREATE DATABASE farmconnect;
 ```
 
 Then run migrations:
@@ -75,9 +75,9 @@ npm run seed
 ```
 
 This creates sample data with test users:
-- **Admin**: admin@agritrace.ai / Admin123!
-- **Farmer**: farmer@agritrace.ai / Farmer123!
-- **Consumer**: consumer@agritrace.ai / Consumer123!
+- **Admin**: admin@farmconnect.in / Admin123!
+- **Farmer**: farmer@farmconnect.in / Farmer123!
+- **Consumer**: consumer@farmconnect.in / Consumer123!
 
 ---
 
@@ -152,7 +152,7 @@ curl -X POST http://localhost:3001/api/crops \
 
 ### 5. Verify Product (Public Endpoint)
 ```bash
-curl http://localhost:3001/api/verify/AGRITRACE-WHEAT-001
+curl http://localhost:3001/api/verify/FARMCONNECT-WHEAT-001
 ```
 
 ---

@@ -39,7 +39,7 @@
 
 *[Click to reveal product name]*
 
-"**AgroTrace AI** - Complete Farm-to-Table Transparency"
+"**FarmConnect AI** - Complete Farm-to-Table Transparency"
 
 ---
 
@@ -152,7 +152,7 @@ This data comes from actual quality tests, not just claims on a label."
 #### Environmental Impact - THE THIRD WOW (20 seconds)
 *[Point to green gradient section]*
 
-"And this... this is why we built AgroTrace."
+"And this... this is why we built FarmConnect."
 
 *[Read stats with emotion]*
 
@@ -267,7 +267,7 @@ This data comes from actual quality tests, not just claims on a label."
 
 "Yes, but look at the difference:"
 
-| Feature | Basic QR Codes | AgroTrace PRO |
+| Feature | Basic QR Codes | FarmConnect PRO |
 |---------|---------------|---------------|
 | Timeline | Text only | Rich visual cards |
 | Map | ❌ No | ✅ Interactive GPS |
@@ -320,7 +320,7 @@ This data comes from actual quality tests, not just claims on a label."
 
 *[Gesture to screen]*
 
-"AgroTrace gives everyone - farmers, consumers, regulators - the information they need to make better choices about food."
+"FarmConnect gives everyone - farmers, consumers, regulators - the information they need to make better choices about food."
 
 *[Build energy]*
 
@@ -328,7 +328,7 @@ This data comes from actual quality tests, not just claims on a label."
 
 *[Final punch]*
 
-"With AgroTrace AI, we're not just tracking food - we're building trust, ensuring safety, and creating a transparent, sustainable food system for everyone."
+"With FarmConnect AI, we're not just tracking food - we're building trust, ensuring safety, and creating a transparent, sustainable food system for everyone."
 
 *[Smile confidently]*
 

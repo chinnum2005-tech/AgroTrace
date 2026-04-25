@@ -1,4 +1,4 @@
-# 🚀 AgriTrace AI - Complete Setup Guide
+# 🚀 FarmConnect AI - Complete Setup Guide
 
 ## ✅ Everything is Already Set Up!
 
@@ -71,7 +71,7 @@ Edit `.env` with your settings:
 # Database
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-POSTGRES_DB=agritrace
+POSTGRES_DB=farmconnect
 POSTGRES_PORT=5432
 
 # Backend
@@ -99,7 +99,7 @@ Wait for health check:
 
 ```bash
 docker-compose ps
-# Should show: agritrace-postgres - healthy
+# Should show: farmconnect-postgres - healthy
 ```
 
 **Option B: Local PostgreSQL**
@@ -109,14 +109,14 @@ Install PostgreSQL 15+ from https://www.postgresql.org/download/
 Then create database:
 
 ```bash
-createdb agritrace
+createdb farmconnect
 ```
 
 Or using psql:
 
 ```bash
 psql -U postgres
-CREATE DATABASE agritrace;
+CREATE DATABASE farmconnect;
 \q
 ```
 
@@ -145,9 +145,9 @@ npm run seed
 ```
 
 This creates test accounts:
-- **Admin**: admin@agritrace.ai / Admin123!
-- **Farmer**: farmer@agritrace.ai / Farmer123!
-- **Consumer**: consumer@agritrace.ai / Consumer123!
+- **Admin**: admin@farmconnect.in / Admin123!
+- **Farmer**: farmer@farmconnect.in / Farmer123!
+- **Consumer**: consumer@farmconnect.in / Consumer123!
 
 ---
 
@@ -176,7 +176,7 @@ Expected response:
 {
   "status": "OK",
   "timestamp": "2024-03-13T10:30:00.000Z",
-  "service": "AgriTrace AI Backend"
+  "service": "FarmConnect AI Backend"
 }
 ```
 
@@ -342,7 +342,7 @@ View it in the crop details page.
 ### 5. Verify Product
 
 1. Go to "Verify" page
-2. Enter QR Code: `AGRITRACE-WHEAT-001`
+2. Enter QR Code: `FARMCONNECT-WHEAT-001`
 3. See complete product history!
 
 ---
@@ -397,10 +397,10 @@ npx prisma generate
 docker-compose ps
 
 # Check AI service is accessible
-curl http://agritrace-ai:8000/health
+curl http://farmconnect-ai:8000/health
 
 # Update backend .env
-AI_SERVICE_URL=http://agritrace-ai:8000
+AI_SERVICE_URL=http://farmconnect-ai:8000
 ```
 
 ---
@@ -490,7 +490,7 @@ After following this guide:
 
 ## 🎉 You're Ready!
 
-Your complete AgriTrace AI platform is now running with:
+Your complete FarmConnect AI platform is now running with:
 
 ✅ **Monorepo structure** with workspaces  
 ✅ **Backend API** with 11 endpoints  

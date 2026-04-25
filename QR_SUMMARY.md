@@ -150,7 +150,7 @@ Page automatically:
 
 ## 🎯 Why It Matters
 
-| Without QR | With AgroTrace QR |
+| Without QR | With FarmConnect QR |
 |------------|-------------------|
 | ❌ No origin info | ✅ Complete farm details |
 | ❌ Trust issues | ✅ Blockchain verified |

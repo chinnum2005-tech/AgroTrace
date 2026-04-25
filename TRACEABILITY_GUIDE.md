@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Product Traceability Timeline** is what makes AgroTrace unique compared to regular e-commerce platforms. Users can now see the **complete journey** of any product from farm to table.
+The **Product Traceability Timeline** is what makes FarmConnect unique compared to regular e-commerce platforms. Users can now see the **complete journey** of any product from farm to table.
 
 ---
 
@@ -361,7 +361,7 @@ if (status === 'DELIVERED') {
 
 QR codes link to traceability:
 ```
-https://agrotrace.com/trace/{productId}
+https://farmconnect.com/trace/{productId}
 ```
 Users scan QR → See complete timeline
 

@@ -1,8 +1,8 @@
-# 🌾 AgriTrace AI - Agriculture Supply Chain Platform
+# 🌾 FarmConnect AI - Agriculture Supply Chain Platform
 
-A comprehensive blockchain-enabled platform for tracking agricultural products from farm to consumer with AI-powered yield prediction.
+Farm Connect: Intelligent Yield Forecasting and secure Farm-to-fork Tracking Framework
 
-![AgriTrace AI](./docs/banner.png)
+![FarmConnect AI](./docs/banner.png)
 
 ## 🚀 Features
 
@@ -306,7 +306,7 @@ cd services/ai-service && pytest
 Update `.env` with production values:
 
 ```env
-DATABASE_URL=postgresql://user:pass@host:5432/agritrace
+DATABASE_URL=postgresql://user:pass@host:5432/farmconnect
 JWT_SECRET=your-super-secret-key
 NODE_ENV=production
 POLYGON_RPC_URL=https://polygon-rpc.com
@@ -338,7 +338,7 @@ This project is licensed under the MIT License.
 
 ## 👥 Team
 
-Built with ❤️ by the AgriTrace AI Team
+Built with ❤️ by the FarmConnect AI Team
 
 ## 🙏 Acknowledgments
 

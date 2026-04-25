@@ -1,4 +1,4 @@
-# 🚀 AgroTrace API Documentation
+# 🚀 FarmConnect API Documentation
 
 ## Overview
 Clean, RESTful API architecture designed for scalability and developer experience.
@@ -394,7 +394,7 @@ Get all crops (Admin only).
       "area": 50.0,
       "estimatedYield": 2250,
       "farmId": "uuid",
-      "qrCode": "AGRITRACE-WHT-001"
+      "qrCode": "FARMCONNECT-WHT-001"
     }
   ]
 }
@@ -803,8 +803,8 @@ Generate QR code for a crop (Farmer only).
   "message": "QR code generated successfully",
   "data": {
     "cropId": "uuid",
-    "qrCode": "AGRITRACE-WHT-001",
-    "url": "https://agritrace.ai/trace/uuid"
+    "qrCode": "FARMCONNECT-WHT-001",
+    "url": "https://farmconnect.in/trace/uuid"
   }
 }
 ```
@@ -1029,7 +1029,7 @@ X-RateLimit-Reset: 1710317700
 http://localhost:3001/api
 
 # Production
-https://api.agritrace.ai/api
+https://api.farmconnect.in/api
 ```
 
 ### 2. **Store Tokens Securely**
@@ -1142,14 +1142,14 @@ curl http://localhost:3001/api/supply-chain/trace/PRODUCT_ID
 
 - **Swagger/OpenAPI Docs:** http://localhost:3001/api-docs
 - **Health Check:** http://localhost:3001/health
-- **GitHub Repo:** https://github.com/your-repo/agritrace
+- **GitHub Repo:** https://github.com/your-repo/farmconnect
 - **Postman Collection:** Available in repo
 
 ---
 
 ## 🎉 Summary
 
-AgroTrace API provides:
+FarmConnect API provides:
 
 ✅ **Clean RESTful Architecture**  
 ✅ **Role-Based Access Control**  

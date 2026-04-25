@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your AgroTrace platform now has **complete QR code verification** from end to end. Farmers can generate QR codes, and consumers can scan them to see the complete product journey.
+Your FarmConnect platform now has **complete QR code verification** from end to end. Farmers can generate QR codes, and consumers can scan them to see the complete product journey.
 
 ---
 
@@ -513,7 +513,7 @@ Track QR scans to understand:
 
 ### Competitive Advantage
 
-| Feature | Amazon | Flipkart | **AgroTrace** |
+| Feature | Amazon | Flipkart | **FarmConnect** |
 |---------|--------|----------|---------------|
 | QR Verification | ❌ | ❌ | ✅ |
 | Full Traceability | ❌ | ❌ | ✅ |

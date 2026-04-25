@@ -59,11 +59,11 @@ export default function DistributorDashboard() {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Truck },
-    { name: 'New Shipment', href: '#', icon: Package },
-    { name: 'Track Shipments', href: '#', icon: MapPin },
-    { name: 'History', href: '#', icon: Clock },
-    { name: 'Blockchain Log', href: '#', icon: CheckCircle },
+    { name: 'Overview', href: '/distributor/dashboard', icon: Activity },
+    { name: 'New Shipment', href: '/supply-chain', icon: Package },
+    { name: 'Track Shipments', href: '/supply-chain', icon: MapPin },
+    { name: 'History', href: '/supply-chain', icon: Clock },
+    { name: 'Blockchain Log', href: '/supply-chain', icon: CheckCircle },
   ];
 
   const user = { firstName: 'Sarah', lastName: 'Distributor', role: 'DISTRIBUTOR' };

@@ -38,7 +38,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <Leaf className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-primary">AgroTrace</span>
+            <span className="text-2xl font-bold text-primary">FarmConnect</span>
           </Link>
 
           {/* Desktop Navigation */}

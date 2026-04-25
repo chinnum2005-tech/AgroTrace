@@ -29,7 +29,7 @@ router.post('/generate', authenticate, async (req: Request, res: Response) => {
     // Generate verification URL or plain text
     const qrData = format === 'url' 
       ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify/${id}`
-      : `AGRITRACE-${id}`;
+      : `FARMCONNECT-${id}`;
 
     // Generate QR code
     const qrCodeImage = await generateQRCode(qrData, {

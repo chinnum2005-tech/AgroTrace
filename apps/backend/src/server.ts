@@ -15,6 +15,7 @@ import orderRoutes from './routes/order.routes';
 import cartRoutes from './routes/cart.routes';
 import shipmentRoutes from './routes/shipment.routes';
 import supplyChainRoutes from './routes/supplyChain.routes';
+import chatRoutes from './routes/chat.routes';
 
 // Error handling middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -61,7 +62,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    service: 'AgriTrace AI Backend',
+    service: 'FarmConnect AI Backend',
   });
 });
 
@@ -76,6 +77,7 @@ app.use('/api/shipments', shipmentRoutes);
 app.use('/api/supply-chain', supplyChainRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/qr', qrRoutes);
+app.use('/api/chat', chatRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -87,7 +89,7 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 AgriTrace AI Backend running on port ${PORT}`);
+  console.log(`🚀 FarmConnect AI Backend running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);

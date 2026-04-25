@@ -69,7 +69,7 @@ export default function Verify() {
             animate={{ opacity: 1, x: 0 }}
           >
             <Leaf className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-primary">AgroTrace</span>
+            <span className="text-2xl font-bold text-primary">FarmConnect</span>
           </motion.div>
         </div>
       </div>
@@ -114,7 +114,7 @@ export default function Verify() {
                   className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-lg"
                   value={qrCode}
                   onChange={(e) => setQrCode(e.target.value)}
-                  placeholder="AGRITRACE-..."
+                  placeholder="FARMCONNECT-..."
                 />
               </div>
             </div>

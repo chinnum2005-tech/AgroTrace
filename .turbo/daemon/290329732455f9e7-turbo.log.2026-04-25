@@ -1,0 +1,66 @@
+2026-04-25T04:52:26.271877Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies"), AnchoredSystemPathBuf(".turbo\\cookies\\.turbo-cookie"), AnchoredSystemPathBuf(".turbo"), AnchoredSystemPathBuf(".turbo\\cookies\\1.cookie")}
+2026-04-25T04:52:26.271943Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T04:52:26.374596Z  WARN daemon_server: turborepo_lib::commands::daemon: daemon already running
+2026-04-25T04:52:26.976404Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\daemon\\290329732455f9e7-turbo.log.2026-04-25")}
+2026-04-25T04:52:26.976426Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T04:52:28.278903Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies")}
+2026-04-25T04:52:28.278934Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T04:52:28.373495Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web"), AnchoredSystemPathBuf("apps\\web\\vite.config.ts.timestamp-1777092748314-b09bcaf39504d.mjs")}
+2026-04-25T04:52:28.373523Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T04:53:12.473419Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("services\\ai-service\\package.json")}
+2026-04-25T04:53:12.473466Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/ai-service"), path: AnchoredSystemPathBuf("services\\ai-service") }}))
+2026-04-25T04:54:21.393422Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package.json")}
+2026-04-25T04:54:21.393438Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(All)
+2026-04-25T04:54:32.785006Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies\\2.cookie")}
+2026-04-25T04:54:32.785031Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T04:54:33.986951Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies")}
+2026-04-25T04:54:33.986977Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T04:54:34.174791Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web"), AnchoredSystemPathBuf("apps\\web\\vite.config.ts.timestamp-1777092874163-247a7624d0786.mjs")}
+2026-04-25T04:54:34.174827Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T04:54:34.360373Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T04:54:34.360539Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\vite.config.ts.timestamp-1777092874163-247a7624d0786.mjs"), AnchoredSystemPathBuf("apps\\web")}
+2026-04-25T04:54:34.360559Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T04:54:34.360620Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T04:55:23.481620Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\src\\App.tsx")}
+2026-04-25T04:55:23.481661Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T04:55:51.873419Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\src\\pages\\Login.tsx")}
+2026-04-25T04:55:51.873463Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T04:56:27.183733Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend\\backend_dev_log.txt"), AnchoredSystemPathBuf("apps\\backend")}
+2026-04-25T04:56:27.183764Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T04:56:29.183380Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend\\backend_dev_log.txt")}
+2026-04-25T04:56:29.183414Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T04:57:55.080389Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies\\3.cookie")}
+2026-04-25T04:57:55.080407Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T04:57:56.382834Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\vite.config.ts.timestamp-1777093076381-56fbb6929a4cd.mjs"), AnchoredSystemPathBuf(".turbo\\cookies")}
+2026-04-25T04:57:56.382902Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }, WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T04:57:56.558077Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T04:57:56.558269Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web"), AnchoredSystemPathBuf("apps\\web\\vite.config.ts.timestamp-1777093076381-56fbb6929a4cd.mjs")}
+2026-04-25T04:57:56.558291Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T04:57:56.558385Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T05:14:38.572330Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend\\tsconfig.json")}
+2026-04-25T05:14:38.572378Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T05:15:39.886307Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend")}
+2026-04-25T05:15:39.886341Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T05:15:39.961497Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T05:16:26.680611Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend\\tsconfig.json")}
+2026-04-25T05:16:26.680668Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T05:16:37.874732Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend\\tsconfig.json")}
+2026-04-25T05:16:37.874770Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T05:16:50.676454Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies\\4.cookie")}
+2026-04-25T05:16:50.676485Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T05:16:52.077828Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies")}
+2026-04-25T05:16:52.077858Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-04-25T05:16:52.171748Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\vite.config.ts.timestamp-1777094212152-817ef3f7906af.mjs"), AnchoredSystemPathBuf("apps\\web")}
+2026-04-25T05:16:52.171785Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T05:16:52.358471Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T05:16:52.358661Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\web\\vite.config.ts.timestamp-1777094212152-817ef3f7906af.mjs"), AnchoredSystemPathBuf("apps\\web")}
+2026-04-25T05:16:52.358686Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/web"), path: AnchoredSystemPathBuf("apps\\web") }}))
+2026-04-25T05:16:52.358759Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T05:58:18.578150Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages\\prisma\\schema.prisma")}
+2026-04-25T05:58:18.578177Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/prisma"), path: AnchoredSystemPathBuf("packages\\prisma") }}))
+2026-04-25T06:03:48.171858Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend\\dist")}
+2026-04-25T06:03:48.171890Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T06:03:48.616007Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-04-25T06:03:48.616839Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\backend\\dist"), AnchoredSystemPathBuf("apps\\backend")}
+2026-04-25T06:03:48.616862Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@agritrace/backend"), path: AnchoredSystemPathBuf("apps\\backend") }}))
+2026-04-25T06:03:48.616916Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun

@@ -24,7 +24,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <div className="flex items-center justify-between h-16 bg-primary px-6">
           <div className="flex items-center space-x-2">
             <Leaf className="text-white h-7 w-7" />
-            <h1 className="text-white text-xl font-bold">AgroTrace</h1>
+            <h1 className="text-white text-xl font-bold">FarmConnect</h1>
           </div>
           <button onClick={onLogout} className="text-white hover:bg-primary-dark p-2 rounded-lg transition-colors" title="Logout">
             <LogOut size={20} />

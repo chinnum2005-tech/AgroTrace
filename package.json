@@ -19,8 +19,8 @@
     "db:generate": "cd packages/prisma && npx prisma generate",
     "db:studio": "cd packages/prisma && npx prisma studio",
     "start": "cd apps/backend && npm run start",
-    "render:build": "npm install; cd packages/prisma && npm install && npx prisma generate && cd ../.. && cd apps/backend && npm run build",
-    "vercel:build": "npm run build; npm run db:generate; npm run db:migrate",
+    "render:build": "npm install && cd packages/prisma && npm install && npx prisma generate && cd ../.. && cd apps/backend && npm run build",
+    "vercel:build": "npm run build && npm run db:generate && npm run db:migrate",
     "build:backend": "cd apps/backend && npm run build"
   },
   "devDependencies": {

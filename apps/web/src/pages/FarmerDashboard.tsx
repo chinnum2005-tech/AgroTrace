@@ -67,11 +67,11 @@ const FarmerDashboard = () => {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Leaf },
-    { name: 'Add Crop Batch', href: '#', icon: Plus },
-    { name: 'My Products', href: '#', icon: Package },
-    { name: 'Generate QR', href: '#', icon: QrCode },
-    { name: 'Blockchain Status', href: '#', icon: CheckCircle },
+    { name: 'Overview', href: '/farmer/dashboard', icon: TrendingUp },
+    { name: 'Add Crop Batch', href: '/crops', icon: Plus },
+    { name: 'My Products', href: '/farms', icon: Package },
+    { name: 'Generate QR', href: '/crops', icon: QrCode },
+    { name: 'Blockchain Status', href: '/supply-chain', icon: CheckCircle },
   ];
 
   const user = { firstName: 'John', lastName: 'Farmer', role: 'FARMER' };
@@ -229,7 +229,7 @@ const FarmerDashboard = () => {
                     />
                   ) : (
                     <QRCodeSVG 
-                      value={selectedCrop.qrData || `AGRITRACE-${selectedCrop.cropId}`}
+                      value={selectedCrop.qrData || `FARMCONNECT-${selectedCrop.cropId}`}
                       size={256}
                       level="H"
                       includeMargin={true}

@@ -94,7 +94,7 @@ export const generateQRCode = async (req: any, res: Response) => {
     }
 
     // Generate unique QR code data
-    const qrData = `AGRITRACE-${cropId}-${Date.now()}`;
+    const qrData = `FARMCONNECT-${cropId}-${Date.now()}`;
 
     // Generate QR code image as base64
     const qrCodeImage = await QRCode.toDataURL(qrData);

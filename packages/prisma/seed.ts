@@ -10,7 +10,7 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 10);
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@agritrace.ai',
+      email: 'admin@farmconnect.in',
       password: adminPassword,
       firstName: 'Admin',
       lastName: 'User',
@@ -24,7 +24,7 @@ async function main() {
   const farmerPassword = await bcrypt.hash('farmer123', 10);
   const farmer = await prisma.user.create({
     data: {
-      email: 'farmer@agritrace.ai',
+      email: 'farmer@farmconnect.in',
       password: farmerPassword,
       firstName: 'John',
       lastName: 'Farmer',
@@ -52,7 +52,7 @@ async function main() {
                 growthStage: 'VEGETATIVE',
                 area: 50.0,
                 estimatedYield: 2250.0,
-                qrCode: 'AGRITRACE-WHEAT-001',
+                qrCode: 'FARMCONNECT-WHEAT-001',
               },
               {
                 name: 'Corn Field B',
@@ -63,7 +63,7 @@ async function main() {
                 growthStage: 'PLANTED',
                 area: 35.0,
                 estimatedYield: 3150.0,
-                qrCode: 'AGRITRACE-CORN-002',
+                qrCode: 'FARMCONNECT-CORN-002',
               },
               {
                 name: 'Soybean Field C',
@@ -74,7 +74,7 @@ async function main() {
                 growthStage: 'FLOWERING',
                 area: 40.0,
                 estimatedYield: 1600.0,
-                qrCode: 'AGRITRACE-SOY-003',
+                qrCode: 'FARMCONNECT-SOY-003',
               },
             ],
           },
@@ -95,7 +95,7 @@ async function main() {
   const distributorPassword = await bcrypt.hash('dist123', 10);
   const distributor = await prisma.user.create({
     data: {
-      email: 'distributor@agritrace.ai',
+      email: 'distributor@farmconnect.in',
       password: distributorPassword,
       firstName: 'Sarah',
       lastName: 'Distributor',
@@ -109,7 +109,7 @@ async function main() {
   const consumerPassword = await bcrypt.hash('consumer123', 10);
   const consumer = await prisma.user.create({
     data: {
-      email: 'consumer@agritrace.ai',
+      email: 'consumer@farmconnect.in',
       password: consumerPassword,
       firstName: 'Mike',
       lastName: 'Consumer',
@@ -221,13 +221,13 @@ async function main() {
       timestamp: new Date('2024-07-21T09:00:00Z'),
       location: 'Distribution Center - Dock 5',
       actorId: distributor.id,
-      latitude: 40.7580,
-      longitude: -73.9855,
       metadata: JSON.stringify({
         carrier: 'Fresh Transport Inc.',
         vehicleId: 'TRK-456',
         destination: 'Metro Supermarket Chain',
         temperatureControl: 'Ambient',
+        latitude: 40.7580,
+        longitude: -73.9855,
       }),
       transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
       blockNumber: Math.floor(Math.random() * 10000000) + 1000001,
@@ -244,14 +244,14 @@ async function main() {
       timestamp: new Date('2024-07-15T07:30:00Z'),
       location: 'Green Valley Farm - Field A',
       actorId: farmer.id,
-      latitude: 40.7128,
-      longitude: -74.0060,
       metadata: JSON.stringify({
         harvestMethod: 'Combine harvester',
         moistureContent: '13.5%',
         yieldAmount: '2,250 kg',
         qualityGrade: 'Premium',
         weatherConditions: 'Sunny, 22°C',
+        latitude: 40.7128,
+        longitude: -74.0060,
       }),
       transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
       blockNumber: Math.floor(Math.random() * 10000000) + 1000002,
@@ -267,14 +267,14 @@ async function main() {
       timestamp: new Date('2024-07-18T11:00:00Z'),
       location: 'Mill Processing Facility',
       actorId: distributor.id,
-      latitude: 40.7306,
-      longitude: -73.9352,
       metadata: JSON.stringify({
         processingType: 'Milling and grading',
         equipmentUsed: 'Industrial mill #3',
         outputQuantity: '2,200 kg flour',
         byproducts: 'Bran and germ separated',
         qualityChecks: 'Passed all tests',
+        latitude: 40.7306,
+        longitude: -73.9352,
       }),
       transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
       blockNumber: Math.floor(Math.random() * 10000000) + 1000003,
@@ -290,13 +290,13 @@ async function main() {
       timestamp: new Date('2024-07-22T15:30:00Z'),
       location: 'Metro Supermarket - Warehouse',
       actorId: distributor.id,
-      latitude: 40.7589,
-      longitude: -73.9851,
       metadata: JSON.stringify({
         receivedBy: 'Warehouse Manager Tom',
         conditionOnArrival: 'Excellent',
         storageAssignment: 'Cold Storage Unit 12',
         inspectionNotes: 'No damage, proper packaging',
+        latitude: 40.7589,
+        longitude: -73.9851,
       }),
       transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
       blockNumber: Math.floor(Math.random() * 10000000) + 1000004,
@@ -312,14 +312,14 @@ async function main() {
       timestamp: new Date('2024-07-23T08:00:00Z'),
       location: 'Metro Supermarket - Store #456',
       actorId: distributor.id,
-      latitude: 40.7614,
-      longitude: -73.9776,
       metadata: JSON.stringify({
         shelfLocation: 'Aisle 7, Shelf B',
         displayType: 'Organic products section',
         pricePerUnit: '$12.99',
         stockQuantity: '50 units',
         promotionalMaterial: 'Organic certification badge displayed',
+        latitude: 40.7614,
+        longitude: -73.9776,
       }),
       transactionHash: '0x' + Math.random().toString(16).substr(2, 40),
       blockNumber: Math.floor(Math.random() * 10000000) + 1000005,
@@ -369,10 +369,10 @@ async function main() {
   console.log(`   - Audit Logs: ${await prisma.auditLog.count()}`);
   
   console.log('\n🔐 Test Credentials:');
-  console.log('   Admin: admin@agritrace.ai / admin123');
-  console.log('   Farmer: farmer@agritrace.ai / farmer123');
-  console.log('   Distributor: distributor@agritrace.ai / dist123');
-  console.log('   Consumer: consumer@agritrace.ai / consumer123');
+  console.log('   Admin: admin@farmconnect.in / admin123');
+  console.log('   Farmer: farmer@farmconnect.in / farmer123');
+  console.log('   Distributor: distributor@farmconnect.in / dist123');
+  console.log('   Consumer: consumer@farmconnect.in / consumer123');
 }
 
 main()

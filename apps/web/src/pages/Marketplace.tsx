@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Leaf, Star, Truck, CheckCircle, Search, Filter, IndianRupee, Eye } from 'lucide-react';
 import Card from '../components/Card';
-import Navbar from '../components/Navbar';
 import { productService, orderService } from '../services';
 
 interface Product {
@@ -211,7 +210,6 @@ export default function Marketplace() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary-light text-white py-16">

@@ -33,25 +33,11 @@ export default function Login({ onLogin }: LoginProps) {
         const user = response.data.user;
         const token = response.data.token;
         
-        // Save auth data
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        
-        // Redirect based on role
-        if (user.role === 'FARMER') {
-          navigate('/farmer/dashboard');
-        } else if (user.role === 'DISTRIBUTOR') {
-          navigate('/distributor/dashboard');
-        } else if (user.role === 'ADMIN') {
-          navigate('/admin/dashboard');
-        } else if (user.role === 'CONSUMER') {
-          navigate('/marketplace');
-        } else {
-          navigate('/dashboard');
-        }
+        // Use the onLogin prop to update global App state, which will automatically handle redirects
+        onLogin(user, token);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred');
+      setError(err.response?.data?.message || err.message || 'An error occurred. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -62,7 +48,7 @@ export default function Login({ onLogin }: LoginProps) {
       <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            AgriTrace AI
+            FarmConnect AI
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             {isRegister ? 'Create your account' : 'Sign in to your account'}
@@ -85,6 +71,8 @@ export default function Login({ onLogin }: LoginProps) {
                 <input
                   id="firstName"
                   type="text"
+                  name="firstName"
+                  autoComplete="given-name"
                   required={!isRegister}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                   value={formData.firstName}
@@ -99,6 +87,8 @@ export default function Login({ onLogin }: LoginProps) {
                 <input
                   id="lastName"
                   type="text"
+                  name="lastName"
+                  autoComplete="family-name"
                   required={!isRegister}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                   value={formData.lastName}
@@ -115,6 +105,8 @@ export default function Login({ onLogin }: LoginProps) {
             <input
               id="email"
               type="email"
+              name="email"
+              autoComplete="email"
               required
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
               value={formData.email}
@@ -129,6 +121,8 @@ export default function Login({ onLogin }: LoginProps) {
             <input
               id="password"
               type="password"
+              name="password"
+              autoComplete={isRegister ? "new-password" : "current-password"}
               required
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
               value={formData.password}
@@ -158,7 +152,7 @@ export default function Login({ onLogin }: LoginProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
           >
             {loading ? 'Please wait...' : (isRegister ? 'Register' : 'Sign In')}
           </button>
@@ -167,7 +161,7 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               type="button"
               onClick={() => setIsRegister(!isRegister)}
-              className="text-primary-600 hover:text-primary-500"
+              className="text-primary hover:text-primary-light"
             >
               {isRegister ? 'Already have an account? Sign In' : "Don't have an account? Register"}
             </button>

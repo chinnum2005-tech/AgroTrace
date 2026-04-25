@@ -1,7 +1,7 @@
 {
   "name": "@agritrace/prisma",
   "version": "1.0.0",
-  "description": "Database schema and Prisma client for AgriTrace AI",
+  "description": "Database schema and Prisma client for FarmConnect AI",
   "private": true,
   "prisma": {
     "seed": "ts-node seed.ts"

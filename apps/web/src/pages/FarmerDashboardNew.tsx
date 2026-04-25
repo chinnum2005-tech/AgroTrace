@@ -165,9 +165,9 @@ export default function FarmerDashboard() {
     { name: 'Dashboard', href: '/farmer/dashboard', icon: Leaf },
     { name: 'My Farms', href: '/farms', icon: MapPin },
     { name: 'Crops', href: '/crops', icon: Package },
-    { name: 'Add Crop', href: '#', icon: Plus },
-    { name: 'Generate QR', href: '#', icon: QrCode },
-    { name: 'Orders', href: '#', icon: ShoppingCart },
+    { name: 'Add Crop', href: '/crops', icon: Plus },
+    { name: 'Generate QR', href: '/crops', icon: QrCode },
+    { name: 'Orders', href: '/supply-chain', icon: ShoppingCart },
   ];
 
   const user = { firstName: farm ? 'John' : 'John', lastName: 'Farmer', role: 'FARMER' };
@@ -473,7 +473,7 @@ export default function FarmerDashboard() {
               
               <div className="bg-white p-6 rounded-2xl shadow-inner mb-6">
                 <QRCodeSVG
-                  value={selectedCrop.qrCode || `AGRITRACE-${selectedCrop.id}`}
+                  value={selectedCrop.qrCode || `FARMCONNECT-${selectedCrop.id}`}
                   size={250}
                   level="H"
                   includeMargin={true}
@@ -483,7 +483,7 @@ export default function FarmerDashboard() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Crop ID:</span>
-                  <span className="font-medium">{selectedCrop.qrCode || `AGRITRACE-${selectedCrop.id}`}</span>
+                  <span className="font-medium">{selectedCrop.qrCode || `FARMCONNECT-${selectedCrop.id}`}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Blockchain Hash:</span>

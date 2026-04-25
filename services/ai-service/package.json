@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "AI yield prediction service for AgriTrace AI",
   "scripts": {
-    "dev": "uvicorn main:app --reload",
+    "dev": "echo \"AI service dev skipped. Run python main.py manually.\"",
     "start": "uvicorn main:app --host 0.0.0.0 --port 8000",
     "test": "pytest"
   }

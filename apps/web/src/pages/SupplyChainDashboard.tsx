@@ -9,11 +9,11 @@ const SupplyChainDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   const navigation = [
-    { name: 'Overview', href: '#', icon: BarChart3 },
-    { name: 'Update Status', href: '#', icon: ClipboardList },
-    { name: 'Track Batches', href: '#', icon: Package },
-    { name: 'Transport Logs', href: '#', icon: Truck },
-    { name: 'Locations', href: '#', icon: MapPin },
+    { name: 'Overview', href: '/supply-chain', icon: BarChart3 },
+    { name: 'Update Status', href: '/supply-chain', icon: ClipboardList },
+    { name: 'Track Batches', href: '/supply-chain', icon: Package },
+    { name: 'Transport Logs', href: '/supply-chain', icon: Truck },
+    { name: 'Locations', href: '/farms', icon: MapPin },
   ];
 
   const user = { firstName: 'Sarah', lastName: 'Distributor', role: 'DISTRIBUTOR' };

@@ -16,12 +16,25 @@ import SupplyChain from './pages/SupplyChain';
 import Verify from './pages/Verify';
 import ProductTracePro from './pages/ProductTracePro';
 import MapDemo from './pages/MapDemo';
+import Chatbot from './pages/Chatbot';
+
+// Admin Pages
+
+import UsersPage from './pages/admin/UsersPage';
+import FarmsPage from './pages/admin/FarmsPage';
+import ProductsPage from './pages/admin/ProductsPage';
+import AnalyticsPage from './pages/admin/AnalyticsPage';
+import VerificationPage from './pages/admin/VerificationPage';
+import SettingsPage from './pages/admin/SettingsPage';
 
 // Components
 import { ToastContainer } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import { NetworkStatus } from './components/NetworkStatus';
 import { DemoModeToggle } from './components/DemoModeToggle';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
 
 // Types
 import { User } from './types';
@@ -68,11 +81,14 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <NetworkStatus />
-      <DemoModeToggle />
-      <Router>
-        <ToastContainer />
-        <Routes>
+      <AuthProvider>
+        <NetworkStatus />
+        <DemoModeToggle />
+        <Router>
+          <div className="min-h-screen bg-background dark:bg-dark">
+            <Navbar user={user} onLogout={handleLogout} />
+            <main className="flex-1">
+              <Routes>
         {/* Public routes */}
         <Route path="/" element={<Landing />} />
         
@@ -186,10 +202,68 @@ function App() {
         {/* Map demo page (for testing) */}
         <Route path="/map-demo" element={<MapDemo />} />
 
+        {/* Protected Admin Routes */}
+
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <UsersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/farms"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <FarmsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProductsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/verifications"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <VerificationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* AI Chatbot (Public) */}
+        <Route path="/chatbot" element={<Chatbot />} />
+
         {/* Default redirect */}
         <Route path="/*" element={<Navigate to="/dashboard" />} />
-      </Routes>
-      </Router>
+              </Routes>
+            </main>
+          </div>
+        </Router>
+        <ToastContainer />
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

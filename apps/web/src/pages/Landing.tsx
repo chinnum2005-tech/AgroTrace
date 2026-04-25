@@ -5,39 +5,7 @@ import { Link } from 'react-router-dom';
 const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar */}
-      <nav className="bg-white shadow-md border-b border-secondary/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <motion.div 
-              className="flex items-center space-x-3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <Leaf className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-primary">AgroTrace</span>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="hidden md:flex items-center space-x-6"
-            >
-              <Link to="/marketplace" className="text-gray-700 hover:text-primary font-medium">
-                Marketplace
-              </Link>
-              <Link to="/verify" className="text-gray-700 hover:text-primary font-medium">
-                Verify Product
-              </Link>
-              <Link
-                to="/login"
-                className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
-              >
-                Get Started
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </nav>
+
 
       {/* Hero Section */}
       <section className="relative overflow-hidden gradient-primary">
@@ -129,7 +97,7 @@ const Landing = () => {
             className="text-center mb-16"
           >
             <h2 className="text-5xl font-extrabold text-green-600 mb-4">
-              Why Choose AgroTrace?
+              Why Choose FarmConnect?
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Complete farm-to-fork transparency powered by cutting-edge technology
@@ -193,7 +161,7 @@ const Landing = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-accent mb-4">
-              How AgroTrace Works
+              How FarmConnect Works
             </h2>
             <p className="text-lg text-gray-600">
               Simple steps to complete transparency
@@ -244,7 +212,7 @@ const Landing = () => {
               Ready to Transform Your Supply Chain?
             </h2>
             <p className="text-xl text-white/90 mb-8">
-              Join thousands of farmers, distributors, and consumers who trust AgroTrace for transparency.
+              Join thousands of farmers, distributors, and consumers who trust FarmConnect for transparency.
             </p>
             <Link
               to="/login"
@@ -263,7 +231,7 @@ const Landing = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Leaf className="h-6 w-6" />
-                <span className="text-xl font-bold">AgroTrace</span>
+                <span className="text-xl font-bold">FarmConnect</span>
               </div>
               <p className="text-white/80 leading-relaxed">
                 Blockchain-based food traceability platform ensuring transparency from farm to fork.
@@ -280,7 +248,7 @@ const Landing = () => {
               <h3 className="font-bold mb-4 text-lg">Contact</h3>
               <p className="text-white/80 leading-relaxed">
                 Building trust through transparency<br />
-                © 2026 AgroTrace. All rights reserved.
+                © 2026 FarmConnect. All rights reserved.
               </p>
             </div>
           </div>

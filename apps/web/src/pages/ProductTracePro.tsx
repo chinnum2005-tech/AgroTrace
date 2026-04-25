@@ -71,7 +71,7 @@ export default function ProductTracePro() {
     farmer: 'John Farmer',
     farm: 'Green Valley Farm',
     batchNumber: `WHT-${productId?.slice(0, 8).toUpperCase() || '2024-001'}`,
-    qrCode: `AGRITRACE-${productId || 'DEMO'}`,
+    qrCode: `FARMCONNECT-${productId || 'DEMO'}`,
     totalDistance: 847,
     totalDays: 12,
     carbonFootprint: 2.4,
@@ -671,7 +671,7 @@ export default function ProductTracePro() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Shield className="w-6 h-6 text-green-600" />
-            <span className="text-xl font-bold text-gray-900">AgroTrace Blockchain Verification</span>
+            <span className="text-xl font-bold text-gray-900">FarmConnect Blockchain Verification</span>
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto mb-6">
             This product's complete journey has been immutably recorded on the blockchain, ensuring authenticity, quality, and transparency from farm to table.

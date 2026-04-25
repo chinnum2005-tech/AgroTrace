@@ -86,12 +86,12 @@ export default function AdminDashboard() {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
-    { name: 'Users', href: '#', icon: Users },
-    { name: 'Farms', href: '/farms', icon: MapPin },
-    { name: 'Products', href: '#', icon: Package },
-    { name: 'Analytics', href: '#', icon: PieChart },
-    { name: 'Verifications', href: '#', icon: Eye },
-    { name: 'Settings', href: '#', icon: Activity },
+    { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Farms', href: '/admin/farms', icon: MapPin },
+    { name: 'Products', href: '/admin/products', icon: Package },
+    { name: 'Analytics', href: '/admin/analytics', icon: PieChart },
+    { name: 'Verifications', href: '/admin/verifications', icon: Eye },
+    { name: 'Settings', href: '/admin/settings', icon: Activity },
   ];
 
   const user = { firstName: 'Admin', lastName: 'User', role: 'ADMIN' };

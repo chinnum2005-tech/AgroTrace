@@ -35,8 +35,8 @@ export const getProductTraceability = async (req: AuthRequest, res: Response) =>
       title: formatEventType(event.eventType),
       description: event.metadata ? JSON.parse(event.metadata).description || '' : '',
       location: event.location || 'Unknown',
-      latitude: event.latitude,
-      longitude: event.longitude,
+      latitude: event.metadata ? JSON.parse(event.metadata).latitude || null : null,
+      longitude: event.metadata ? JSON.parse(event.metadata).longitude || null : null,
       timestamp: event.timestamp,
       date: formatDate(event.timestamp),
       actor: `${event.actor.firstName} ${event.actor.lastName}`,
@@ -81,11 +81,9 @@ export const addSupplyChainEvent = async (req: AuthRequest, res: Response) => {
         productId,
         eventType,
         location: location || null,
-        latitude: latitude || null,
-        longitude: longitude || null,
         actorId: userId,
         timestamp: new Date(),
-        metadata: metadata ? JSON.stringify(metadata) : JSON.stringify({ description }),
+        metadata: metadata ? JSON.stringify({ ...metadata, latitude, longitude }) : JSON.stringify({ description, latitude, longitude }),
         verified: false, // Can be set to true when blockchain integration is active
       },
       include: {

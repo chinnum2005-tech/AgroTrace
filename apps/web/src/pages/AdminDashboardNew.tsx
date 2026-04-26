@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
+
 import { motion } from 'framer-motion';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import { 
   Users, Package, TrendingUp, DollarSign, Activity, BarChart3, 
-  PieChart, MapPin, ShoppingCart, Eye, Bell, Search, Filter
+  PieChart, MapPin, ShoppingCart, Eye, Bell, Search, Filter, Settings, LogOut
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -94,6 +95,17 @@ export default function AdminDashboard() {
     { name: 'Settings', href: '/admin/settings', icon: Activity },
   ];
 
+  const dockItems: DockItem[] = [
+    { id: 'dashboard', icon: BarChart3,  label: 'Dashboard',     active: true, gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',   onClick: () => window.location.href='/admin/dashboard' },
+    { id: 'users',     icon: Users,      label: 'Users',         badge: 3,     gradient: 'linear-gradient(135deg,#22c55e,#15803d)',   onClick: () => window.location.href='/admin/users' },
+    { id: 'farms',     icon: MapPin,     label: 'Farms',                       gradient: 'linear-gradient(135deg,#10b981,#047857)',   onClick: () => window.location.href='/admin/farms' },
+    { id: 'products',  icon: Package,    label: 'Products',                    gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',   onClick: () => window.location.href='/admin/products' },
+    { id: 'analytics', icon: PieChart,   label: 'Analytics',                   gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',   onClick: () => window.location.href='/admin/analytics' },
+    { id: 'verify',    icon: Eye,        label: 'Verifications',               gradient: 'linear-gradient(135deg,#ec4899,#be185d)',   onClick: () => window.location.href='/admin/verifications' },
+    { id: 'settings',  icon: Settings,   label: 'Settings',                    gradient: 'linear-gradient(135deg,#64748b,#334155)',   onClick: () => window.location.href='/admin/settings' },
+    { id: 'logout',    icon: LogOut,     label: 'Logout',                      gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',   onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+  ];
+
   const user = { firstName: 'Admin', lastName: 'User', role: 'ADMIN' };
 
   if (loading) {
@@ -113,9 +125,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <Sidebar navigation={navigation} user={user} />
-      
-      <div className="ml-64 p-8">
+      <div className="p-8 pb-28">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -347,6 +357,9 @@ export default function AdminDashboard() {
           </motion.div>
         </div>
       </div>
+
+      {/* macOS-style magnification dock */}
+      <MacDock items={dockItems} />
     </div>
   );
 }

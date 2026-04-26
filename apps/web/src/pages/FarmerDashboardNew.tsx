@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import { motion, AnimatePresence } from 'framer-motion';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import { 
   Leaf, Plus, QrCode, Upload, CheckCircle, Package, TrendingUp, 
   Sun, Cloud, Droplets, Wind, Thermometer, Calendar, MapPin,
-  DollarSign, Eye, ShoppingCart, BarChart3, PieChart, Activity
+  DollarSign, Eye, ShoppingCart, BarChart3, PieChart, Activity, LogOut, Store
 } from 'lucide-react';
 import { cropService, farmService, verifyService, orderService } from '../services';
 import { QRCodeSVG } from 'qrcode.react';
@@ -161,16 +161,16 @@ export default function FarmerDashboard() {
     { month: 'Jun', revenue: 35000 },
   ];
 
-  const navigation = [
-    { name: 'Dashboard', href: '/farmer/dashboard', icon: Leaf },
-    { name: 'My Farms', href: '/farms', icon: MapPin },
-    { name: 'Crops', href: '/crops', icon: Package },
-    { name: 'Add Crop', href: '/crops', icon: Plus },
-    { name: 'Generate QR', href: '/crops', icon: QrCode },
-    { name: 'Orders', href: '/supply-chain', icon: ShoppingCart },
+  const dockItems: DockItem[] = [
+    { id: 'dashboard', icon: Leaf,         label: 'Dashboard',   active: true, gradient: 'linear-gradient(135deg,#22c55e,#15803d)',  onClick: () => window.location.href='/farmer/dashboard' },
+    { id: 'farms',     icon: MapPin,        label: 'My Farms',                 gradient: 'linear-gradient(135deg,#10b981,#047857)',  onClick: () => window.location.href='/farms' },
+    { id: 'crops',     icon: Package,       label: 'Crops',                    gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/crops' },
+    { id: 'addcrop',   icon: Plus,          label: 'Add Crop',                 gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/crops' },
+    { id: 'qr',        icon: QrCode,        label: 'Generate QR',              gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/crops' },
+    { id: 'orders',    icon: ShoppingCart,  label: 'Orders',                   gradient: 'linear-gradient(135deg,#ec4899,#be185d)',  onClick: () => window.location.href='/supply-chain' },
+    { id: 'market',    icon: Store,         label: 'Marketplace',              gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                   gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
   ];
-
-  const user = { firstName: farm ? 'John' : 'John', lastName: 'Farmer', role: 'FARMER' };
 
   if (loading) {
     return (
@@ -189,9 +189,7 @@ export default function FarmerDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-yellow-50">
-      <Sidebar navigation={navigation} user={user} />
-      
-      <div className="ml-64 p-8">
+      <div className="p-8 pb-28">
         {/* Welcome Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -448,6 +446,9 @@ export default function FarmerDashboard() {
           </div>
         </motion.div>
       </div>
+
+      {/* macOS-style magnification dock */}
+      <MacDock items={dockItems} />
 
       {/* QR Code Modal */}
       <AnimatePresence>

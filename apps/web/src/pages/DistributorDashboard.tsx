@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Truck, Package, MapPin, CheckCircle, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import { Truck, Package, MapPin, CheckCircle, Clock, TrendingUp, AlertCircle, Activity, LogOut, Store, BarChart3 } from 'lucide-react';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import Card from '../components/Card';
 import Timeline from '../components/Timeline';
 import BlockchainBadge from '../components/BlockchainBadge';
-import Sidebar from '../components/Sidebar';
 
 interface Shipment {
   id: string;
@@ -58,21 +58,22 @@ export default function DistributorDashboard() {
     alert(`Shipment ${shipmentId} updated to ${newStatus}`);
   };
 
-  const navigation = [
-    { name: 'Overview', href: '/distributor/dashboard', icon: Activity },
-    { name: 'New Shipment', href: '/supply-chain', icon: Package },
-    { name: 'Track Shipments', href: '/supply-chain', icon: MapPin },
-    { name: 'History', href: '/supply-chain', icon: Clock },
-    { name: 'Blockchain Log', href: '/supply-chain', icon: CheckCircle },
+  const dockItems: DockItem[] = [
+    { id: 'overview',   icon: BarChart3,    label: 'Overview',       active: true, gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/distributor/dashboard' },
+    { id: 'shipment',   icon: Package,      label: 'New Shipment',               gradient: 'linear-gradient(135deg,#22c55e,#15803d)',  onClick: () => window.location.href='/supply-chain' },
+    { id: 'track',      icon: MapPin,       label: 'Track Shipments',            gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/supply-chain' },
+    { id: 'transit',    icon: Truck,        label: 'In Transit',                 gradient: 'linear-gradient(135deg,#10b981,#047857)',  onClick: () => window.location.href='/supply-chain' },
+    { id: 'history',    icon: Clock,        label: 'History',                    gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/supply-chain' },
+    { id: 'blockchain', icon: CheckCircle,  label: 'Blockchain Log',             gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/supply-chain' },
+    { id: 'market',     icon: Store,        label: 'Marketplace',                gradient: 'linear-gradient(135deg,#ec4899,#be185d)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'logout',     icon: LogOut,       label: 'Logout',                     gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
   ];
 
   const user = { firstName: 'Sarah', lastName: 'Distributor', role: 'DISTRIBUTOR' };
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar navigation={navigation} user={user} />
-      
-      <div className="ml-64 p-8">
+      <div className="p-8 pb-28">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -286,6 +287,9 @@ export default function DistributorDashboard() {
           </Card>
         </div>
       </div>
+
+      {/* macOS-style magnification dock */}
+      <MacDock items={dockItems} />
     </div>
   );
 }

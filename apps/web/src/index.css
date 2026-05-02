@@ -6,6 +6,12 @@
   body {
     @apply bg-slate-50 text-slate-900;
   }
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
+  .dark {
+    color-scheme: dark;
+  }
 }
 
 @layer components {
@@ -18,7 +24,7 @@
   }
   
   .card {
-    @apply bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200;
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200 dark:border-gray-700;
   }
   
   .gradient-primary {
@@ -31,18 +37,34 @@
   
   /* Background colors */
   .bg-background {
-    @apply bg-gray-50;
+    @apply bg-gray-50 dark:bg-gray-900;
   }
+
+  /* Dark mode card variants */
+  .dark .card {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  /* Global Dark Mode Fixes */
+  .dark .bg-white { @apply bg-gray-800 border-gray-700 !important; }
+  .dark .bg-gray-50, .dark .bg-green-50, .dark .bg-blue-50, .dark .bg-yellow-50, .dark .bg-slate-50, .dark .bg-cyan-50, .dark .bg-purple-50, .dark .bg-indigo-50 { @apply bg-gray-900 !important; }
+  .dark .text-gray-800, .dark .text-gray-900, .dark .text-slate-900, .dark .text-slate-800 { @apply text-gray-100 !important; }
+  .dark .text-gray-600, .dark .text-gray-700 { @apply text-gray-300 !important; }
+  
+  /* Fix hardcoded gradients in dark mode */
+  .dark .from-green-50, .dark .from-blue-50, .dark .from-yellow-50 { @apply from-gray-900 !important; }
+  .dark .via-blue-50, .dark .via-green-50, .dark .via-yellow-50 { @apply via-gray-800 !important; }
+  .dark .to-yellow-50, .dark .to-green-50, .dark .to-blue-50 { @apply to-gray-900 !important; }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-100 rounded-full;
+  @apply bg-slate-100 dark:bg-gray-800 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -53,7 +75,13 @@
   @apply bg-green-700;
 }
 
-/* Smooth animations */
-* {
-  @apply transition-colors duration-200;
+/* Smooth animations — exclude transforms for performance */
+*:not(path):not(svg) {
+  transition-property: color, background-color, border-color;
+  transition-duration: 200ms;
+}
+
+/* PWA install button */
+.pwa-install-btn {
+  @apply fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl;
 }

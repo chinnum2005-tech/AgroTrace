@@ -4,7 +4,8 @@ import MacDock, { DockItem } from '../components/ui/MacDock';
 import { 
   Leaf, Plus, QrCode, Upload, CheckCircle, Package, TrendingUp, 
   Sun, Cloud, Droplets, Wind, Thermometer, Calendar, MapPin,
-  DollarSign, Eye, ShoppingCart, BarChart3, PieChart, Activity, LogOut, Store
+  DollarSign, Eye, ShoppingCart, BarChart3, PieChart, Activity, LogOut, Store,
+  Microscope, Camera, Shield
 } from 'lucide-react';
 import { cropService, farmService, verifyService, orderService } from '../services';
 import { QRCodeSVG } from 'qrcode.react';
@@ -12,6 +13,8 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, PieChart as RechartsPie, Pie, Cell, Legend
 } from 'recharts';
+import PricePrediction from '../components/PricePrediction';
+import PDFReportButton from '../components/PDFReportButton';
 
 const COLORS = ['#16a34a', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
 
@@ -162,14 +165,15 @@ export default function FarmerDashboard() {
   ];
 
   const dockItems: DockItem[] = [
-    { id: 'dashboard', icon: Leaf,         label: 'Dashboard',   active: true, gradient: 'linear-gradient(135deg,#22c55e,#15803d)',  onClick: () => window.location.href='/farmer/dashboard' },
-    { id: 'farms',     icon: MapPin,        label: 'My Farms',                 gradient: 'linear-gradient(135deg,#10b981,#047857)',  onClick: () => window.location.href='/farms' },
-    { id: 'crops',     icon: Package,       label: 'Crops',                    gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/crops' },
-    { id: 'addcrop',   icon: Plus,          label: 'Add Crop',                 gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/crops' },
-    { id: 'qr',        icon: QrCode,        label: 'Generate QR',              gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/crops' },
-    { id: 'orders',    icon: ShoppingCart,  label: 'Orders',                   gradient: 'linear-gradient(135deg,#ec4899,#be185d)',  onClick: () => window.location.href='/supply-chain' },
-    { id: 'market',    icon: Store,         label: 'Marketplace',              gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
-    { id: 'logout',    icon: LogOut,        label: 'Logout',                   gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+    { id: 'dashboard', icon: Leaf,         label: 'Dashboard',    active: true, gradient: 'linear-gradient(135deg,#22c55e,#15803d)',  onClick: () => window.location.href='/farmer/dashboard' },
+    { id: 'farms',     icon: MapPin,        label: 'My Farms',                  gradient: 'linear-gradient(135deg,#10b981,#047857)',  onClick: () => window.location.href='/farms' },
+    { id: 'crops',     icon: Package,       label: 'Crops',                     gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/crops' },
+    { id: 'disease',   icon: Microscope,    label: 'Disease AI',                gradient: 'linear-gradient(135deg,#dc2626,#991b1b)',  onClick: () => window.location.href='/disease-detection' },
+    { id: 'weather',   icon: Sun,           label: 'Weather AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/weather' },
+    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
+    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
+    { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
   ];
 
   if (loading) {
@@ -385,15 +389,28 @@ export default function FarmerDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
+          {/* Price Prediction Section */}
+          <div className="mb-8">
+            <PricePrediction />
+          </div>
+
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
               <Package className="h-6 w-6 text-green-600" />
               Your Crops
             </h2>
-            <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              Add New Crop
-            </button>
+            <div className="flex items-center gap-3">
+              <PDFReportButton
+                reportTitle="Farmer Dashboard Report"
+                fileName="farmer-report.pdf"
+                reportType="crop"
+                variant="secondary"
+              />
+              <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Add New Crop
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

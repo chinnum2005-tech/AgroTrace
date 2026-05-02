@@ -1,0 +1,107 @@
+{
+  "nav": {
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "verify": "Verify Product",
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "language": "Language"
+  },
+  "hero": {
+    "badge": "Powered by AI & Blockchain Technology",
+    "title": "Track Your Food From",
+    "subtitle": "Farm to Table",
+    "description": "Blockchain-based food traceability ensuring transparency, authenticity, and trust in every product you consume.",
+    "scanQR": "Scan Product QR",
+    "browseMarket": "Browse Marketplace"
+  },
+  "stats": {
+    "farmers": "Farmers",
+    "products": "Products Tracked",
+    "verifications": "Verifications"
+  },
+  "features": {
+    "title": "Why Choose FarmConnect?",
+    "subtitle": "Complete farm-to-fork transparency powered by cutting-edge technology",
+    "blockchain": "Blockchain Security",
+    "blockchainDesc": "Immutable records on Polygon ensure data integrity across the entire supply chain.",
+    "ai": "AI Crop Insights",
+    "aiDesc": "Machine learning predictions help farmers optimize yield and make data-driven decisions.",
+    "tracking": "Supply Chain Tracking",
+    "trackingDesc": "Real-time GPS tracking of products from harvest through distribution to retail.",
+    "transparency": "Consumer Transparency",
+    "transparencyDesc": "Scan QR codes to verify product authenticity, origin, and complete journey instantly."
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "totalCrops": "Total Crops",
+    "totalArea": "Total Area",
+    "estYield": "Est. Yield",
+    "estRevenue": "Est. Revenue",
+    "yourCrops": "Your Crops",
+    "addNewCrop": "Add New Crop",
+    "generateQR": "Generate QR",
+    "viewDetails": "View Details",
+    "weather": "Weather Conditions",
+    "yieldPrediction": "Yield Prediction by Crop",
+    "landDistribution": "Land Distribution",
+    "revenueTrend": "Revenue Trend"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "upload": "Upload",
+    "download": "Download",
+    "search": "Search",
+    "filter": "Filter",
+    "viewAll": "View All",
+    "close": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "role": "Role",
+    "alreadyHaveAccount": "Already have an account? Sign In",
+    "dontHaveAccount": "Don't have an account? Register",
+    "pleaseWait": "Please wait...",
+    "signInTitle": "Sign in to your account",
+    "registerTitle": "Create your account"
+  },
+  "howItWorks": {
+    "title": "How FarmConnect Works",
+    "subtitle": "Simple steps to complete transparency",
+    "step1": "Farmer",
+    "step1Desc": "Registers crops and generates unique QR codes",
+    "step2": "Distributor",
+    "step2Desc": "Tracks transport and storage conditions",
+    "step3": "Retailer",
+    "step3Desc": "Updates product availability and location",
+    "step4": "Consumer",
+    "step4Desc": "Scans QR to verify complete product journey"
+  },
+  "cta": {
+    "title": "Ready to Transform Your Supply Chain?",
+    "subtitle": "Join thousands of farmers, distributors, and consumers who trust FarmConnect for transparency.",
+    "button": "Get Started Now"
+  },
+  "footer": {
+    "description": "Blockchain-based food traceability platform ensuring transparency from farm to fork.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "trust": "Building trust through transparency",
+    "rights": "All rights reserved."
+  }
+}

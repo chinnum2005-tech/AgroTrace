@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import json
@@ -6,15 +7,30 @@ from datetime import datetime
 import os
 
 from models.yield_predictor import YieldPredictor
+from models.disease_predictor import DiseasePredictor
 
 app = FastAPI(
     title="AgriTrace AI Service",
-    description="AI-powered crop yield prediction service",
+    description="AI-powered crop yield and disease prediction service",
     version="1.0.0"
 )
 
-# Initialize the ML model
+# Add CORS Middleware to allow requests from the React frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173",
+        "http://192.168.1.9:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize the ML models
 predictor = YieldPredictor()
+disease_predictor = DiseasePredictor()
 
 
 class PredictionRequest(BaseModel):
@@ -83,6 +99,19 @@ async def predict_yield(request: PredictionRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+
+@app.post("/predict/disease")
+async def predict_disease(file: UploadFile = File(...)):
+    """
+    Predict plant disease from an uploaded image
+    """
+    try:
+        contents = await file.read()
+        prediction = disease_predictor.predict(contents)
+        return prediction
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Disease prediction failed: {str(e)}")
 
 
 @app.get("/")

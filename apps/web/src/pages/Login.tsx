@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { authService } from '../services/authService';
 
 interface LoginProps {
@@ -8,6 +9,7 @@ interface LoginProps {
 
 export default function Login({ onLogin }: LoginProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -33,7 +35,6 @@ export default function Login({ onLogin }: LoginProps) {
         const user = response.data.user;
         const token = response.data.token;
         
-        // Use the onLogin prop to update global App state, which will automatically handle redirects
         onLogin(user, token);
       }
     } catch (err: any) {
@@ -51,7 +52,7 @@ export default function Login({ onLogin }: LoginProps) {
             FarmConnect AI
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            {isRegister ? 'Create your account' : 'Sign in to your account'}
+            {isRegister ? t('auth.registerTitle') : t('auth.signInTitle')}
           </p>
         </div>
         
@@ -66,7 +67,7 @@ export default function Login({ onLogin }: LoginProps) {
             <>
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                  First Name
+                  {t('auth.firstName')}
                 </label>
                 <input
                   id="firstName"
@@ -82,7 +83,7 @@ export default function Login({ onLogin }: LoginProps) {
               
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  Last Name
+                  {t('auth.lastName')}
                 </label>
                 <input
                   id="lastName"
@@ -100,7 +101,7 @@ export default function Login({ onLogin }: LoginProps) {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              {t('auth.email')}
             </label>
             <input
               id="email"
@@ -116,7 +117,7 @@ export default function Login({ onLogin }: LoginProps) {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="password"
@@ -133,7 +134,7 @@ export default function Login({ onLogin }: LoginProps) {
           {isRegister && (
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Role
+                {t('auth.role')}
               </label>
               <select
                 id="role"
@@ -152,18 +153,18 @@ export default function Login({ onLogin }: LoginProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
           >
-            {loading ? 'Please wait...' : (isRegister ? 'Register' : 'Sign In')}
+            {loading ? t('auth.pleaseWait') : (isRegister ? t('auth.register') : t('auth.signIn'))}
           </button>
 
           <div className="text-center">
             <button
               type="button"
               onClick={() => setIsRegister(!isRegister)}
-              className="text-primary hover:text-primary-light"
+              className="text-green-600 hover:text-green-700"
             >
-              {isRegister ? 'Already have an account? Sign In' : "Don't have an account? Register"}
+              {isRegister ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
             </button>
           </div>
         </form>

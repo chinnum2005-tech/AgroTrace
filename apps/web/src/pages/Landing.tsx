@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
 import { Leaf, Shield, TrendingUp, Truck, QrCode, CheckCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Landing = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background">
-
-
       {/* Hero Section */}
       <section className="relative overflow-hidden gradient-primary">
         {/* Animated background elements */}
@@ -28,16 +29,15 @@ const Landing = () => {
               transition={{ duration: 0.5 }}
               className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white font-medium"
             >
-              🌱 Powered by AI & Blockchain Technology
+              🌱 {t('hero.badge')}
             </motion.div>
             
             <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight drop-shadow-lg">
-              Track Your Food From<br />
-              <span className="text-yellow-300 drop-shadow-md">Farm to Table</span>
+              {t('hero.title')}<br />
+              <span className="text-yellow-300 drop-shadow-md">{t('hero.subtitle')}</span>
             </h1>
             <p className="text-xl text-white/95 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
-              Blockchain-based food traceability ensuring transparency, authenticity, and trust in every product you consume. 
-              Verified on Polygon Mumbai Testnet.
+              {t('hero.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
@@ -45,23 +45,23 @@ const Landing = () => {
                 className="group bg-white text-green-600 hover:bg-slate-50 px-10 py-5 rounded-xl transition-all duration-200 font-bold text-lg shadow-2xl hover:shadow-3xl flex items-center justify-center transform hover:scale-105"
               >
                 <QrCode className="inline-block mr-3 h-6 w-6" />
-                Scan Product QR
+                {t('hero.scanQR')}
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/marketplace"
                 className="btn-secondary px-10 py-5 rounded-xl font-bold text-lg transform hover:scale-105 flex items-center"
               >
-                🛒 Browse Marketplace
+                🛒 {t('hero.browseMarket')}
               </Link>
             </div>
             
             {/* Stats */}
             <div className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
               {[
-                { value: '500+', label: 'Farmers' },
-                { value: '10K+', label: 'Products Tracked' },
-                { value: '50K+', label: 'Verifications' }
+                { value: '500+', label: t('stats.farmers') },
+                { value: '10K+', label: t('stats.products') },
+                { value: '50K+', label: t('stats.verifications') }
               ].map((stat, index) => (
                 <motion.div
                   key={index}
@@ -97,10 +97,10 @@ const Landing = () => {
             className="text-center mb-16"
           >
             <h2 className="text-5xl font-extrabold text-green-600 mb-4">
-              Why Choose FarmConnect?
+              {t('features.title')}
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Complete farm-to-fork transparency powered by cutting-edge technology
+              {t('features.subtitle')}
             </p>
           </motion.div>
 
@@ -108,26 +108,26 @@ const Landing = () => {
             {[
               {
                 icon: Shield,
-                title: 'Blockchain Security',
-                description: 'Immutable records on Polygon ensure data integrity and build trust across the entire supply chain.',
+                title: t('features.blockchain'),
+                description: t('features.blockchainDesc'),
                 gradient: 'from-green-500 to-emerald-600'
               },
               {
                 icon: TrendingUp,
-                title: 'AI Crop Insights',
-                description: 'Machine learning predictions help farmers optimize yield and make data-driven decisions.',
+                title: t('features.ai'),
+                description: t('features.aiDesc'),
                 gradient: 'from-amber-500 to-orange-600'
               },
               {
                 icon: Truck,
-                title: 'Supply Chain Tracking',
-                description: 'Real-time GPS tracking of products from harvest through distribution to retail stores.',
+                title: t('features.tracking'),
+                description: t('features.trackingDesc'),
                 gradient: 'from-blue-500 to-cyan-600'
               },
               {
                 icon: CheckCircle,
-                title: 'Consumer Transparency',
-                description: 'Scan QR codes to verify product authenticity, origin, and complete journey instantly.',
+                title: t('features.transparency'),
+                description: t('features.transparencyDesc'),
                 gradient: 'from-purple-500 to-pink-600'
               }
             ].map((feature, index) => (
@@ -161,19 +161,19 @@ const Landing = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-accent mb-4">
-              How FarmConnect Works
+              {t('howItWorks.title')}
             </h2>
             <p className="text-lg text-gray-600">
-              Simple steps to complete transparency
+              {t('howItWorks.subtitle')}
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { step: '1', title: 'Farmer', description: 'Registers crops and generates unique QR codes', icon: '🌾' },
-              { step: '2', title: 'Distributor', description: 'Tracks transport and storage conditions', icon: '🚚' },
-              { step: '3', title: 'Retailer', description: 'Updates product availability and location', icon: '🏪' },
-              { step: '4', title: 'Consumer', description: 'Scans QR to verify complete product journey', icon: '🔍' }
+              { step: '1', title: t('howItWorks.step1'), description: t('howItWorks.step1Desc'), icon: '🌾' },
+              { step: '2', title: t('howItWorks.step2'), description: t('howItWorks.step2Desc'), icon: '🚚' },
+              { step: '3', title: t('howItWorks.step3'), description: t('howItWorks.step3Desc'), icon: '🏪' },
+              { step: '4', title: t('howItWorks.step4'), description: t('howItWorks.step4Desc'), icon: '🔍' }
             ].map((item, index) => (
               <motion.div
                 key={index}
@@ -209,16 +209,16 @@ const Landing = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl font-bold text-white mb-6">
-              Ready to Transform Your Supply Chain?
+              {t('cta.title')}
             </h2>
             <p className="text-xl text-white/90 mb-8">
-              Join thousands of farmers, distributors, and consumers who trust FarmConnect for transparency.
+              {t('cta.subtitle')}
             </p>
             <Link
               to="/login"
               className="inline-block bg-white text-primary hover:bg-secondary-light px-10 py-4 rounded-xl transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl"
             >
-              Get Started Now
+              {t('cta.button')}
             </Link>
           </motion.div>
         </div>
@@ -234,21 +234,21 @@ const Landing = () => {
                 <span className="text-xl font-bold">FarmConnect</span>
               </div>
               <p className="text-white/80 leading-relaxed">
-                Blockchain-based food traceability platform ensuring transparency from farm to fork.
+                {t('footer.description')}
               </p>
             </div>
             <div>
-              <h3 className="font-bold mb-4 text-lg">Quick Links</h3>
+              <h3 className="font-bold mb-4 text-lg">{t('footer.quickLinks')}</h3>
               <ul className="space-y-2 text-white/80">
-                <li><Link to="/verify" className="hover:text-white transition-colors">Verify Product</Link></li>
-                <li><Link to="/login" className="hover:text-white transition-colors">Login</Link></li>
+                <li><Link to="/verify" className="hover:text-white transition-colors">{t('nav.verify')}</Link></li>
+                <li><Link to="/login" className="hover:text-white transition-colors">{t('nav.login')}</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold mb-4 text-lg">Contact</h3>
+              <h3 className="font-bold mb-4 text-lg">{t('footer.contact')}</h3>
               <p className="text-white/80 leading-relaxed">
-                Building trust through transparency<br />
-                © 2026 FarmConnect. All rights reserved.
+                {t('footer.trust')}<br />
+                © 2026 FarmConnect. {t('footer.rights')}
               </p>
             </div>
           </div>
@@ -259,3 +259,5 @@ const Landing = () => {
 };
 
 export default Landing;
+
+

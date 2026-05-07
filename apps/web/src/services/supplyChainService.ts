@@ -36,6 +36,19 @@ export const supplyChainService = {
   },
 
   /**
+   * Get ALL events for the Blockchain Explorer
+   * Supports search, limit, and offset for pagination
+   */
+  getAllEvents: async (params?: { search?: string; limit?: number; offset?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.set('search', params.search);
+    if (params?.limit  !== undefined) query.set('limit',  String(params.limit));
+    if (params?.offset !== undefined) query.set('offset', String(params.offset));
+    const response = await api.get(`/api/supply-chain/all?${query.toString()}`);
+    return response.data; // { success, total, data[] }
+  },
+
+  /**
    * Get events for farmer's products
    */
   getMyProductEvents: async () => {

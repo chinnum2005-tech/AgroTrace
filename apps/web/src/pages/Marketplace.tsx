@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ShoppingCart, Leaf, Star, Truck, CheckCircle, Search, Filter, IndianRupee, Eye } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingCart, Leaf, Star, Truck, CheckCircle, Search, Filter, IndianRupee, Eye, X, Store, MessageCircle, Shield, Camera, LogOut } from 'lucide-react';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import Card from '../components/Card';
 import { productService, orderService } from '../services';
 
@@ -136,9 +137,16 @@ export default function Marketplace() {
     { id: 'DAIRY', name: 'Dairy & Honey', icon: '🍯' },
   ];
 
+  const [toast, setToast] = useState<{msg: string; type: 'success'|'error'} | null>(null);
+
+  const showToast = (msg: string, type: 'success'|'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const addToCart = (product: Product) => {
     setCart([...cart, product]);
-    alert(`✅ ${product.name} added to cart!`);
+    showToast(`${product.name} added to cart!`);
   };
 
   const handleBuyNow = async (product: Product) => {
@@ -160,16 +168,16 @@ export default function Marketplace() {
       const response = await orderService.createOrder(orderData);
       
       if (response.success) {
-        alert('✅ Order placed successfully!');
+        showToast('Order placed successfully!');
         setShowOrderModal(false);
         setOrderQuantity(1);
         setSelectedProduct(null);
       } else {
-        alert('❌ Failed to place order. Please try again.');
+        showToast('Failed to place order. Please try again.', 'error');
       }
     } catch (error: any) {
       console.error('Order error:', error);
-      alert(`❌ ${error.response?.data?.message || 'Failed to place order'}`);
+      showToast(error.response?.data?.message || 'Failed to place order', 'error');
     }
   };
 
@@ -196,6 +204,20 @@ export default function Marketplace() {
     }
   };
 
+  const currentUser = (() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
+  })();
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const dockItems: DockItem[] = [
+    { id: 'market',    icon: Store,         label: 'Marketplace',  active: true, gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'orders',    icon: ShoppingCart,  label: 'My Orders',                  gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: handleTrackOrder },
+    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
+    { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
+    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+  ];
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.farmName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -208,8 +230,21 @@ export default function Marketplace() {
     return matchesSearch && matchesCategory;
   });
 
+  // Skeleton loader component
+  const SkeletonCard = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse">
+      <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-xl mb-4" />
+      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-full mb-2" />
+      <div className="h-4 bg-gray-100 dark:bg-gray-600 rounded-full w-2/3 mb-4" />
+      <div className="flex gap-2">
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex-1" />
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex-1" />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${isAuthenticated ? 'pb-32' : ''}`}>
       
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary to-primary-light text-white py-16">
@@ -285,8 +320,31 @@ export default function Marketplace() {
             </div>
           </div>
 
+          {/* Toast notification */}
+          <AnimatePresence>
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                className={`fixed top-20 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl ${
+                  toast.type === 'success'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-red-600 text-white'
+                }`}
+              >
+                <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                <span className="font-medium">{toast.msg}</span>
+                <button onClick={() => setToast(null)} className="ml-2 opacity-70 hover:opacity-100"><X className="h-4 w-4" /></button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product, index) => (
+            {/* Loading skeletons */}
+            {loading && [...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+            {/* Actual products */}
+            {!loading && filteredProducts.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -365,12 +423,19 @@ export default function Marketplace() {
                 </Card>
               </motion.div>
             ))}
-          </div>
+        </div>
 
-          {filteredProducts.length === 0 && (
+          {!loading && filteredProducts.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-2xl text-gray-500">No products found</p>
+              <div className="text-6xl mb-4">🔍</div>
+              <p className="text-2xl text-gray-500 dark:text-gray-400 font-semibold">No products found</p>
               <p className="text-gray-400 mt-2">Try adjusting your search or filters</p>
+              <button
+                onClick={() => { setSearchTerm(''); setSelectedCategory('ALL'); }}
+                className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
+              >
+                Clear Filters
+              </button>
             </div>
           )}
         </div>
@@ -462,6 +527,9 @@ export default function Marketplace() {
           </button>
         </div>
       </section>
+      
+      {/* macOS-style magnification dock */}
+      {isAuthenticated && <MacDock items={dockItems} />}
     </div>
   );
 }

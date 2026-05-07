@@ -37,7 +37,25 @@ export const authService = {
   },
 
   /**
-   * Get current authenticated user
+   * Get fresh user data from backend using token
+   */
+  getMe: async () => {
+    try {
+      const response = await api.get('/api/auth/me');
+      if (response.data && response.data.success) {
+        // Update local storage with fresh user data
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        return response.data.data.user;
+      }
+    } catch (error) {
+      console.error('Failed to verify token:', error);
+      throw error;
+    }
+    return null;
+  },
+
+  /**
+   * Get current authenticated user (from local storage)
    */
   getCurrentUser: () => {
     const user = localStorage.getItem('user');

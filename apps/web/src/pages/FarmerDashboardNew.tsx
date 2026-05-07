@@ -30,6 +30,12 @@ export default function FarmerDashboard() {
     estimatedYield: 0,
     totalRevenue: 0,
   });
+  
+  // Get current user from localStorage
+  const currentUser = (() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
+  })();
+  const userName = currentUser?.firstName || 'Farmer';
 
   // Mock weather data (can be replaced with real API)
   const weather = {
@@ -202,7 +208,7 @@ export default function FarmerDashboard() {
         >
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Welcome back, John! 👨‍🌾</h1>
+              <h1 className="text-4xl font-bold mb-2">Welcome back, {userName}! 👨‍🌾</h1>
               <p className="text-green-100 text-lg">{farm?.name || 'Green Valley Farm'}</p>
               <div className="flex items-center gap-4 mt-4 text-green-50">
                 <span className="flex items-center gap-2">

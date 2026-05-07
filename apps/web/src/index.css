@@ -1,14 +1,26 @@
+/* Google Fonts — must be first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-slate-50 text-slate-900;
   }
+
   .dark body {
-    @apply bg-gray-900 text-gray-100;
+    @apply bg-gray-950 text-gray-100;
   }
+
   .dark {
     color-scheme: dark;
   }
@@ -16,41 +28,55 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl;
+    @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95;
   }
-  
+
   .btn-secondary {
-    @apply bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl;
+    @apply bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95;
   }
-  
+
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200 dark:border-gray-700;
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 dark:border-gray-700;
   }
-  
+
   .gradient-primary {
-    @apply bg-gradient-to-br from-green-600 via-green-500 to-emerald-600;
+    @apply bg-gradient-to-br from-green-700 via-green-600 to-emerald-700;
   }
-  
+
   .gradient-accent {
     @apply bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600;
   }
-  
+
   /* Background colors */
   .bg-background {
-    @apply bg-gray-50 dark:bg-gray-900;
+    @apply bg-gray-50 dark:bg-gray-950;
   }
+
+  /* Primary color */
+  .bg-primary { @apply bg-green-600; }
+  .text-primary { @apply text-green-600; }
+  .border-primary { @apply border-green-600; }
+  .bg-primary-dark { @apply bg-green-700; }
+  .bg-primary-light { @apply bg-green-500; }
+  .text-primary-light { @apply text-green-500; }
+  .bg-secondary-light { @apply bg-amber-100; }
+  .bg-accent { @apply bg-slate-800; }
+  .text-accent { @apply text-slate-800 dark:text-white; }
+  .hover\:bg-accent-dark:hover { @apply bg-slate-900; }
+  .bg-secondary { @apply bg-amber-400; }
 
   /* Dark mode card variants */
   .dark .card {
     @apply bg-gray-800 border-gray-700;
   }
-  
+
   /* Global Dark Mode Fixes */
   .dark .bg-white { @apply bg-gray-800 border-gray-700 !important; }
-  .dark .bg-gray-50, .dark .bg-green-50, .dark .bg-blue-50, .dark .bg-yellow-50, .dark .bg-slate-50, .dark .bg-cyan-50, .dark .bg-purple-50, .dark .bg-indigo-50 { @apply bg-gray-900 !important; }
+  .dark .bg-gray-50, .dark .bg-green-50, .dark .bg-blue-50, .dark .bg-yellow-50,
+  .dark .bg-slate-50, .dark .bg-cyan-50, .dark .bg-purple-50, .dark .bg-indigo-50 { @apply bg-gray-900 !important; }
   .dark .text-gray-800, .dark .text-gray-900, .dark .text-slate-900, .dark .text-slate-800 { @apply text-gray-100 !important; }
   .dark .text-gray-600, .dark .text-gray-700 { @apply text-gray-300 !important; }
-  
+
   /* Fix hardcoded gradients in dark mode */
   .dark .from-green-50, .dark .from-blue-50, .dark .from-yellow-50 { @apply from-gray-900 !important; }
   .dark .via-blue-50, .dark .via-green-50, .dark .via-yellow-50 { @apply via-gray-800 !important; }
@@ -59,29 +85,81 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-100 dark:bg-gray-800 rounded-full;
+  @apply bg-slate-100 dark:bg-gray-800;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-green-600 rounded-full;
+  @apply bg-green-500/60 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-green-700;
+  @apply bg-green-600;
 }
 
-/* Smooth animations — exclude transforms for performance */
-*:not(path):not(svg) {
+/* Smooth color transitions */
+*, *::before, *::after {
+  transition-property: color, background-color, border-color, fill, stroke;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* But DON'T transition transforms (causes jank) */
+*, *::before, *::after {
   transition-property: color, background-color, border-color;
-  transition-duration: 200ms;
 }
 
 /* PWA install button */
 .pwa-install-btn {
   @apply fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl;
+}
+
+/* Glass morphism utility */
+.glass {
+  @apply bg-white/10 backdrop-blur-md border border-white/20;
+}
+
+.glass-dark {
+  @apply bg-black/20 backdrop-blur-md border border-white/10;
+}
+
+/* Shimmer loading animation */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+.dark .shimmer {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.glow-green:hover {
+  box-shadow: 0 0 35px rgba(34, 197, 94, 0.5);
 }

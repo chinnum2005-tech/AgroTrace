@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { QrCode, CheckCircle, XCircle, Leaf, MapPin, Calendar, User, Truck, Package } from 'lucide-react';
+import { QrCode, CheckCircle, XCircle, Leaf, MapPin, Calendar, User, Truck, Package, Store, MessageCircle, Shield, Camera, LogOut, ShoppingCart } from 'lucide-react';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import { verifyService } from '../services';
 
 export default function Verify() {
@@ -58,8 +59,19 @@ export default function Verify() {
     }
   };
 
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const dockItems: DockItem[] = [
+    { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'trace',     icon: QrCode,        label: 'Traceability', active: true, gradient: 'linear-gradient(135deg,#10b981,#047857)',  onClick: () => window.location.href='/verify' },
+    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
+    { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
+    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary-light to-background">
+    <div className={`min-h-screen bg-gradient-to-br from-background via-secondary-light to-background ${isAuthenticated ? 'pb-32' : ''}`}>
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-secondary/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -312,6 +324,9 @@ export default function Verify() {
           </motion.div>
         )}
       </div>
+      
+      {/* macOS-style magnification dock */}
+      {isAuthenticated && <MacDock items={dockItems} />}
     </div>
   );
 }

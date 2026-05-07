@@ -1,9 +1,26 @@
 import os
+# Block TensorFlow BEFORE anything else — prevents DLL crash on Windows
 os.environ["TRANSFORMERS_NO_TF"] = "1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["USE_TF"] = "0"
+os.environ["USE_TORCH"] = "1"
+
+import sys
+
+# Pre-block tensorflow import to avoid DLL initialization crash
+class _BlockTF:
+    """Dummy module that prevents tensorflow from being imported."""
+    def __getattr__(self, name):
+        raise ImportError("TensorFlow blocked (PyTorch-only mode)")
+
+if 'tensorflow' not in sys.modules:
+    sys.modules['tensorflow'] = _BlockTF()  # type: ignore
+
 import torch
 from PIL import Image
 import io
 import hashlib
+
 
 class DiseasePredictor:
     def __init__(self):
@@ -12,38 +29,49 @@ class DiseasePredictor:
         self.classes = [
             "Apple___Apple_scab", "Apple___Black_rot", "Apple___Cedar_apple_rust", "Apple___healthy",
             "Blueberry___healthy", "Cherry_(including_sour)___Powdery_mildew", "Cherry_(including_sour)___healthy",
-            "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot", "Corn_(maize)___Common_rust_", 
-            "Corn_(maize)___Northern_Leaf_Blight", "Corn_(maize)___healthy", "Grape___Black_rot", 
+            "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot", "Corn_(maize)___Common_rust_",
+            "Corn_(maize)___Northern_Leaf_Blight", "Corn_(maize)___healthy", "Grape___Black_rot",
             "Grape___Esca_(Black_Measles)", "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)", "Grape___healthy",
             "Orange___Haunglongbing_(Citrus_greening)", "Peach___Bacterial_spot", "Peach___healthy",
-            "Pepper,_bell___Bacterial_spot", "Pepper,_bell___healthy", "Potato___Early_blight", 
+            "Pepper,_bell___Bacterial_spot", "Pepper,_bell___healthy", "Potato___Early_blight",
             "Potato___Late_blight", "Potato___healthy", "Raspberry___healthy", "Soybean___healthy",
             "Squash___Powdery_mildew", "Strawberry___Leaf_scorch", "Strawberry___healthy",
             "Tomato___Bacterial_spot", "Tomato___Early_blight", "Tomato___Late_blight", "Tomato___Leaf_Mold",
-            "Tomato___Septoria_leaf_spot", "Tomato___Spider_mites Two-spotted_spider_mite", 
+            "Tomato___Septoria_leaf_spot", "Tomato___Spider_mites Two-spotted_spider_mite",
             "Tomato___Target_Spot", "Tomato___Tomato_Yellow_Leaf_Curl_Virus", "Tomato___Tomato_mosaic_virus",
             "Tomato___healthy"
         ]
-        
+
         self.model = None
         self.model_loaded = False
-        
-        # Try to load the real HuggingFace model pipeline for PlantVillage
+        self.transform = None
+
+        self._load_model()
+
+    def _load_model(self):
+        """
+        Try to load the PlantVillage MobileNetV2 model using pure PyTorch.
+        """
         try:
-            from transformers import pipeline
-            print("Loading real MobileNetV2 model from HuggingFace (PyTorch)...")
-            # Force PyTorch framework to avoid TensorFlow DLL initialization issues
-            # Using a verified model ID for PlantVillage 38 classes
-            self.model = pipeline(
-                "image-classification", 
-                model="linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification",
-                framework="pt"
-            )
+            from transformers import AutoFeatureExtractor, AutoModelForImageClassification
+
+            print("Loading PlantVillage MobileNetV2 model (PyTorch only)...")
+            model_id = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
+
+            self._extractor = AutoFeatureExtractor.from_pretrained(model_id)
+            self._torch_model = AutoModelForImageClassification.from_pretrained(model_id)
+            self._torch_model.eval()
+            self._torch_model.to(self.device)
+
+            self._id2label = self._torch_model.config.id2label
+
             self.model_loaded = True
-            print("Real AI Model loaded successfully via PyTorch!")
+            print(f"[OK] Real CNN model loaded on {self.device}! Classes: {len(self._id2label)}")
+
         except Exception as e:
-            print(f"Warning: Could not load real model from HuggingFace. Reason: {e}")
-            print("Running in High-Fidelity Simulation Mode for 38 classes.")
+            print(f"[WARNING] Could not load real model: {e}")
+            print("[INFO] Running in simulation mode (results will be hash-based, not real).")
+            self.model_loaded = False
 
     def predict(self, image_bytes: bytes):
         """
@@ -57,21 +85,34 @@ class DiseasePredictor:
         predictions = []
 
         if self.model_loaded:
-            # Real Inference using transformers pipeline
             try:
-                results = self.model(image)
-                # results is a list of dicts: [{'label': 'Tomato___Early_blight', 'score': 0.98}, ...]
-                for i in range(min(3, len(results))):
+                import torch
+                import torch.nn.functional as F
+
+                inputs = self._extractor(images=image, return_tensors="pt")
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+                with torch.no_grad():
+                    outputs = self._torch_model(**inputs)
+                    logits = outputs.logits
+                    probs = F.softmax(logits, dim=-1)[0]
+
+                # Get top 3
+                top3_probs, top3_idxs = torch.topk(probs, 3)
+
+                for prob, idx in zip(top3_probs.tolist(), top3_idxs.tolist()):
+                    label = self._id2label.get(idx, f"Class_{idx}")
                     predictions.append({
-                        "disease_id": results[i]['label'],
-                        "confidence": round(results[i]['score'] * 100, 1)
+                        "disease_id": label,
+                        "confidence": round(prob * 100, 1)
                     })
+
             except Exception as e:
                 print(f"Inference error: {e}. Falling back to simulation.")
                 predictions = self._simulate_prediction(image_bytes)
         else:
             predictions = self._simulate_prediction(image_bytes)
-            
+
         # Ensure we always return a top result
         top_result = predictions[0] if predictions else {"disease_id": "Unknown", "confidence": 0}
 
@@ -83,27 +124,27 @@ class DiseasePredictor:
 
     def _simulate_prediction(self, image_bytes: bytes):
         """
-        Sophisticated deterministic fallback returning top 3 predictions
-        based on image hashing so it acts like a real model.
+        Fallback: deterministic simulation based on image hash.
+        Clearly labelled as simulation so users aren't misled.
         """
         img_hash = int(hashlib.md5(image_bytes).hexdigest(), 16)
-        
-        # Determine top 3 unique indices
+
         idx1 = img_hash % len(self.classes)
         idx2 = (img_hash + 7) % len(self.classes)
         idx3 = (img_hash + 13) % len(self.classes)
-        
-        if idx2 == idx1: idx2 = (idx2 + 1) % len(self.classes)
-        if idx3 == idx1 or idx3 == idx2: idx3 = (idx3 + 2) % len(self.classes)
-        
-        # Generate realistic confidence scores (e.g. 92%, 5%, 2%)
-        conf1 = 88.0 + (img_hash % 110) / 10.0  # 88.0 to 99.0
+
+        if idx2 == idx1:
+            idx2 = (idx2 + 1) % len(self.classes)
+        if idx3 == idx1 or idx3 == idx2:
+            idx3 = (idx3 + 2) % len(self.classes)
+
+        conf1 = 88.0 + (img_hash % 110) / 10.0
         rem = 100.0 - conf1
-        conf2 = rem * 0.7 + (img_hash % 50) / 100.0
-        conf3 = 100.0 - conf1 - conf2
+        conf2 = rem * 0.7
+        conf3 = round(100.0 - conf1 - conf2, 1)
 
         return [
-            {"disease_id": self.classes[idx1], "confidence": round(conf1, 1)},
-            {"disease_id": self.classes[idx2], "confidence": round(conf2, 1)},
-            {"disease_id": self.classes[idx3], "confidence": round(conf3, 1)}
+            {"disease_id": "SIMULATION___" + self.classes[idx1], "confidence": round(conf1, 1)},
+            {"disease_id": "SIMULATION___" + self.classes[idx2], "confidence": round(conf2, 1)},
+            {"disease_id": "SIMULATION___" + self.classes[idx3], "confidence": round(conf3, 1)},
         ]

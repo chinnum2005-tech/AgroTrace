@@ -1,25 +1,45 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Leaf, Eye, EyeOff, Lock, Mail, User, ChevronRight,
+  Sparkles, Shield, Zap, AlertCircle, WifiOff
+} from 'lucide-react';
 import { authService } from '../services/authService';
 
 interface LoginProps {
   onLogin: (user: any, token: string) => void;
 }
 
+// These only activate when the backend server is completely unreachable (network error)
+// They do NOT activate on wrong password — that still shows the real error.
+const OFFLINE_DEMO_USERS: Record<string, { user: any; password: string }> = {
+  'farmer@farmconnect.in':      { password: 'farmer123',    user: { id: 'demo-1', firstName: 'John',  lastName: 'Farmer',      email: 'farmer@farmconnect.in',      role: 'FARMER' } },
+  'admin@farmconnect.in':       { password: 'admin123',     user: { id: 'demo-2', firstName: 'Admin', lastName: 'User',        email: 'admin@farmconnect.in',       role: 'ADMIN' } },
+  'distributor@farmconnect.in': { password: 'dist123',      user: { id: 'demo-3', firstName: 'Sarah', lastName: 'Distributor', email: 'distributor@farmconnect.in', role: 'DISTRIBUTOR' } },
+  'consumer@farmconnect.in':    { password: 'consumer123',  user: { id: 'demo-4', firstName: 'Mike',  lastName: 'Consumer',    email: 'consumer@farmconnect.in',    role: 'CONSUMER' } },
+};
+
+const demoCards = [
+  { email: 'farmer@farmconnect.in',      password: 'farmer123',   label: 'Farmer',      emoji: '👨‍🌾', color: 'from-green-500 to-emerald-600' },
+  { email: 'admin@farmconnect.in',       password: 'admin123',    label: 'Admin',       emoji: '🛡️',  color: 'from-purple-500 to-violet-600' },
+  { email: 'distributor@farmconnect.in', password: 'dist123',     label: 'Distributor', emoji: '🚚', color: 'from-blue-500 to-cyan-600' },
+];
+
 export default function Login({ onLogin }: LoginProps) {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const [isRegister, setIsRegister] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    role: 'CONSUMER',
-  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({ email: '', password: '', firstName: '', lastName: '', role: 'CONSUMER' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [usingOfflineMode, setUsingOfflineMode] = useState(false);
+
+  const isNetworkError = (err: any): boolean => {
+    // true only if the server is completely unreachable (no response at all)
+    return !err.response && (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || err.message === 'Network Error');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,147 +47,370 @@ export default function Login({ onLogin }: LoginProps) {
     setLoading(true);
 
     try {
-      const response = isRegister
-        ? await authService.register(formData)
-        : await authService.login(formData.email, formData.password);
-
-      if (response.success && response.data) {
-        const user = response.data.user;
-        const token = response.data.token;
-        
-        onLogin(user, token);
+      if (isRegister) {
+        const response = await authService.register(formData);
+        if (response.success && response.data) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          onLogin(response.data.user, response.data.token);
+        } else {
+          setError(response.message || 'Registration failed');
+        }
+      } else {
+        const response = await authService.login(formData.email, formData.password);
+        if (response.success && response.data) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          onLogin(response.data.user, response.data.token);
+        } else {
+          setError(response.message || 'Login failed');
+        }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'An error occurred. Please check your connection.');
+      if (!isRegister && isNetworkError(err)) {
+        // Backend unreachable — try offline demo fallback
+        const demo = OFFLINE_DEMO_USERS[formData.email.toLowerCase()];
+        if (demo && demo.password === formData.password) {
+          setUsingOfflineMode(true);
+          const offlineToken = 'offline-demo-token';
+          localStorage.setItem('token', offlineToken);
+          localStorage.setItem('user', JSON.stringify(demo.user));
+          onLogin(demo.user, offlineToken);
+          return;
+        }
+        setError('Cannot reach the server. Check that the backend is running on port 3001.');
+      } else {
+        // Real error (wrong password, validation, etc.) — show it as-is
+        setError(err.response?.data?.message || err.message || 'Authentication failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoCardClick = async (card: typeof demoCards[0]) => {
+    setError('');
+    setLoading(true);
+    try {
+      const response = await authService.login(card.email, card.password);
+      if (response.success && response.data) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        onLogin(response.data.user, response.data.token);
+      } else {
+        setError(response.message || 'Login failed');
+      }
+    } catch (err: any) {
+      if (isNetworkError(err)) {
+        // Offline fallback
+        const demo = OFFLINE_DEMO_USERS[card.email];
+        if (demo) {
+          setUsingOfflineMode(true);
+          const offlineToken = 'offline-demo-token';
+          localStorage.setItem('token', offlineToken);
+          localStorage.setItem('user', JSON.stringify(demo.user));
+          onLogin(demo.user, offlineToken);
+          return;
+        }
+      }
+      setError(err.response?.data?.message || 'Could not connect to server');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-300">
-      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            FarmConnect AI
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {isRegister ? t('auth.registerTitle') : t('auth.signInTitle')}
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-green-950 to-slate-900">
+      {/* Animated background orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-green-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-emerald-400/15 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl animate-pulse delay-500" />
+      </div>
+
+      {/* Grid overlay */}
+      <div
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }}
+      />
+
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+
+        {/* Left panel — Branding */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7 }}
+          className="hidden lg:block text-white"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2.5 bg-green-500 rounded-xl shadow-lg shadow-green-500/30">
+              <Leaf className="h-7 w-7 text-white" />
+            </div>
+            <span className="text-2xl font-bold">FarmConnect</span>
+          </div>
+
+          <h1 className="text-4xl font-extrabold leading-tight mb-4">
+            Blockchain-Powered<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
+              Farm to Table
+            </span><br />
+            Traceability
+          </h1>
+          <p className="text-slate-300 text-lg leading-relaxed mb-8">
+            Connect farmers, distributors and consumers with verified, blockchain-backed supply chain data.
           </p>
-        </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
 
-          {isRegister && (
-            <>
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                  {t('auth.firstName')}
-                </label>
-                <input
-                  id="firstName"
-                  type="text"
-                  name="firstName"
-                  autoComplete="given-name"
-                  required={!isRegister}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  {t('auth.lastName')}
-                </label>
-                <input
-                  id="lastName"
-                  type="text"
-                  name="lastName"
-                  autoComplete="family-name"
-                  required={!isRegister}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                />
-              </div>
-            </>
-          )}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              {t('auth.email')}
-            </label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              autoComplete="email"
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              {t('auth.password')}
-            </label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              autoComplete={isRegister ? "new-password" : "current-password"}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
-
-          {isRegister && (
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                {t('auth.role')}
-              </label>
-              <select
-                id="role"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          <div className="space-y-4">
+            {[
+              { icon: Shield, text: 'Blockchain-verified authenticity for every product' },
+              { icon: Zap,    text: 'AI-powered disease detection and yield prediction' },
+              { icon: Sparkles, text: 'Real-time supply chain tracking across India' },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + i * 0.15 }}
+                className="flex items-center gap-3 text-slate-300"
               >
-                <option value="CONSUMER">Consumer</option>
-                <option value="FARMER">Farmer</option>
-                <option value="DISTRIBUTOR">Distributor</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-          >
-            {loading ? t('auth.pleaseWait') : (isRegister ? t('auth.register') : t('auth.signIn'))}
-          </button>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setIsRegister(!isRegister)}
-              className="text-green-600 hover:text-green-700"
-            >
-              {isRegister ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
-            </button>
+                <div className="p-1.5 bg-green-500/20 rounded-lg">
+                  <item.icon className="h-4 w-4 text-green-400" />
+                </div>
+                <span>{item.text}</span>
+              </motion.div>
+            ))}
           </div>
-        </form>
+
+          {/* Quick login cards */}
+          <div className="mt-10">
+            <p className="text-slate-400 text-xs mb-3 font-medium uppercase tracking-wider">
+              Quick Login (uses real database accounts)
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {demoCards.map((card) => (
+                <motion.button
+                  key={card.label}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handleDemoCardClick(card)}
+                  disabled={loading}
+                  className={`bg-gradient-to-br ${card.color} p-3 rounded-xl text-white text-center shadow-lg hover:shadow-xl transition-all disabled:opacity-60`}
+                >
+                  <div className="text-2xl mb-1">{card.emoji}</div>
+                  <div className="text-xs font-bold">{card.label}</div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Right panel — Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl"
+        >
+          {/* Logo (mobile) */}
+          <div className="flex items-center gap-2 mb-6 lg:hidden">
+            <div className="p-2 bg-green-500 rounded-lg">
+              <Leaf className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-white">FarmConnect</span>
+          </div>
+
+          {/* Offline mode banner */}
+          <AnimatePresence>
+            {usingOfflineMode && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-3 rounded-xl mb-4 text-sm"
+              >
+                <WifiOff className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span>Server unreachable — signed in with offline demo account. Start the backend for full access.</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Sign In / Register toggle */}
+          <div className="flex gap-1 bg-white/10 rounded-xl p-1 mb-6">
+            {['Sign In', 'Register'].map((tab, i) => (
+              <button
+                key={tab}
+                onClick={() => { setIsRegister(i === 1); setError(''); }}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                  isRegister === (i === 1)
+                    ? 'bg-green-500 text-white shadow-lg'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-4 text-sm"
+              >
+                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegister && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-300 text-sm font-medium mb-1.5 block">{t('auth.firstName')}</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      id="firstName"
+                      type="text"
+                      required={isRegister}
+                      placeholder="John"
+                      className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all text-sm"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-slate-300 text-sm font-medium mb-1.5 block">{t('auth.lastName')}</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      id="lastName"
+                      type="text"
+                      required={isRegister}
+                      placeholder="Farmer"
+                      className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all text-sm"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="text-slate-300 text-sm font-medium mb-1.5 block">{t('auth.email')}</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-slate-300 text-sm font-medium mb-1.5 block">{t('auth.password')}</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete={isRegister ? 'new-password' : 'current-password'}
+                  placeholder="••••••••"
+                  className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {isRegister && (
+              <div>
+                <label className="text-slate-300 text-sm font-medium mb-1.5 block">{t('auth.role')}</label>
+                <select
+                  id="role"
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                >
+                  <option value="CONSUMER"    className="bg-slate-800">Consumer</option>
+                  <option value="FARMER"      className="bg-slate-800">Farmer</option>
+                  <option value="DISTRIBUTOR" className="bg-slate-800">Distributor</option>
+                </select>
+              </div>
+            )}
+
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-60"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  {isRegister ? t('auth.register') : t('auth.signIn')}
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
+            </motion.button>
+          </form>
+
+          {/* Mobile quick login */}
+          <div className="lg:hidden mt-6">
+            <p className="text-slate-400 text-xs mb-3 text-center font-medium uppercase tracking-wider">
+              Quick Login
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {demoCards.map((card) => (
+                <button
+                  key={card.label}
+                  onClick={() => handleDemoCardClick(card)}
+                  disabled={loading}
+                  className={`bg-gradient-to-br ${card.color} p-2.5 rounded-xl text-white text-center shadow-lg disabled:opacity-60`}
+                >
+                  <div className="text-xl mb-0.5">{card.emoji}</div>
+                  <div className="text-xs font-bold">{card.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-center text-slate-400 text-sm mt-5">
+            {isRegister ? (
+              <>Already have an account?{' '}
+                <button onClick={() => setIsRegister(false)} className="text-green-400 hover:text-green-300 font-semibold transition-colors">Sign in</button>
+              </>
+            ) : (
+              <>New to FarmConnect?{' '}
+                <button onClick={() => setIsRegister(true)} className="text-green-400 hover:text-green-300 font-semibold transition-colors">Create account</button>
+              </>
+            )}
+          </p>
+        </motion.div>
       </div>
     </div>
   );

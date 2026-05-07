@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cloud, Wind, Droplets, Sun, CloudRain, AlertTriangle, Thermometer, MapPin, Compass, Sprout, ShieldAlert, Calendar, Navigation, History } from 'lucide-react';
+import { Cloud, Wind, Droplets, Sun, CloudRain, AlertTriangle, Thermometer, MapPin, Compass, Sprout, ShieldAlert, Calendar, Navigation, History, Store, ShoppingCart, Shield, MessageCircle, LogOut, Camera } from 'lucide-react';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 interface WeatherData {
@@ -177,6 +178,18 @@ export default function WeatherIntelligence() {
     }
   };
 
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const dockItems: DockItem[] = [
+    { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'orders',    icon: ShoppingCart,  label: 'My Orders',                  gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
+    { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
+    { id: 'weather',   icon: Cloud,         label: 'Weather AI',  active: true, gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/weather' },
+    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+  ];
+
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -260,7 +273,7 @@ export default function WeatherIntelligence() {
   const recommendations = getCropRecommendations();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 p-6 pb-28">
+    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 p-6 ${isAuthenticated ? 'pb-32' : ''}`}>
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header & Search */}
@@ -553,6 +566,9 @@ export default function WeatherIntelligence() {
           </>
         )}
       </div>
+      
+      {/* macOS-style magnification dock */}
+      {isAuthenticated && <MacDock items={dockItems} />}
     </div>
   );
 }

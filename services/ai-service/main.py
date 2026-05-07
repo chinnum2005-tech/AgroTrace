@@ -1,10 +1,27 @@
+import os
+import sys
+
+# === Block TensorFlow BEFORE any other imports (prevents DLL crash on Windows) ===
+os.environ["TRANSFORMERS_NO_TF"] = "1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["USE_TF"] = "0"
+os.environ["USE_TORCH"] = "1"
+
+class _BlockTF:
+    """Prevents tensorflow from being imported at all."""
+    def __getattr__(self, name):
+        raise ImportError("TensorFlow blocked (PyTorch-only mode)")
+
+if 'tensorflow' not in sys.modules:
+    sys.modules['tensorflow'] = _BlockTF()  # type: ignore
+# =================================================================================
+
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import json
 from datetime import datetime
-import os
 
 from models.yield_predictor import YieldPredictor
 from models.disease_predictor import DiseasePredictor

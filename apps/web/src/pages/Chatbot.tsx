@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Store, ShoppingCart, Shield, Camera, LogOut, Cloud, MessageCircle } from 'lucide-react';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import AdminLayout from '../components/AdminLayout';
 
 interface Message {
@@ -136,6 +137,18 @@ export default function Chatbot() {
     }
   };
 
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const dockItems: DockItem[] = [
+    { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'orders',    icon: ShoppingCart,  label: 'My Orders',                  gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
+    { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',  active: true, gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
+    { id: 'weather',   icon: Cloud,         label: 'Weather AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/weather' },
+    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+  ];
+
   const quickQuestions = [
     'Best crop for 5 acres?',
     'Tractor price for small farm',
@@ -145,7 +158,7 @@ export default function Chatbot() {
 
   return (
     <AdminLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className={`max-w-4xl mx-auto ${isAuthenticated ? 'pb-32' : ''}`}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -265,6 +278,9 @@ export default function Chatbot() {
           </p>
         </motion.div>
       </div>
+      
+      {/* macOS-style magnification dock */}
+      {isAuthenticated && <MacDock items={dockItems} />}
     </AdminLayout>
   );
 }

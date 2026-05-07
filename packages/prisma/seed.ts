@@ -8,8 +8,10 @@ async function main() {
 
   // Create admin user
   const adminPassword = await bcrypt.hash('admin123', 10);
-  const admin = await prisma.user.create({
-    data: {
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@farmconnect.in' },
+    update: {},
+    create: {
       email: 'admin@farmconnect.in',
       password: adminPassword,
       firstName: 'Admin',
@@ -18,12 +20,14 @@ async function main() {
       phone: '+1-555-0001',
     },
   });
-  console.log('✅ Created Admin User');
+  console.log('✅ Ensured Admin User exists');
 
   // Create farmer user with farm and crops
   const farmerPassword = await bcrypt.hash('farmer123', 10);
-  const farmer = await prisma.user.create({
-    data: {
+  const farmer = await prisma.user.upsert({
+    where: { email: 'farmer@farmconnect.in' },
+    update: {},
+    create: {
       email: 'farmer@farmconnect.in',
       password: farmerPassword,
       firstName: 'John',
@@ -89,12 +93,14 @@ async function main() {
       },
     },
   });
-  console.log('✅ Created Farmer with Farm and Crops');
+  console.log('✅ Ensured Farmer exists with Farm and Crops');
 
   // Create distributor user
   const distributorPassword = await bcrypt.hash('dist123', 10);
-  const distributor = await prisma.user.create({
-    data: {
+  const distributor = await prisma.user.upsert({
+    where: { email: 'distributor@farmconnect.in' },
+    update: {},
+    create: {
       email: 'distributor@farmconnect.in',
       password: distributorPassword,
       firstName: 'Sarah',
@@ -103,12 +109,14 @@ async function main() {
       phone: '+1-555-0003',
     },
   });
-  console.log('✅ Created Distributor User');
+  console.log('✅ Ensured Distributor User exists');
 
   // Create consumer user
   const consumerPassword = await bcrypt.hash('consumer123', 10);
-  const consumer = await prisma.user.create({
-    data: {
+  const consumer = await prisma.user.upsert({
+    where: { email: 'consumer@farmconnect.in' },
+    update: {},
+    create: {
       email: 'consumer@farmconnect.in',
       password: consumerPassword,
       firstName: 'Mike',
@@ -117,7 +125,7 @@ async function main() {
       phone: '+1-555-0004',
     },
   });
-  console.log('✅ Created Consumer User');
+  console.log('✅ Ensured Consumer User exists');
 
   // Create AI predictions for wheat crop
   const wheatCrop = farmer.farm!.crops[0];

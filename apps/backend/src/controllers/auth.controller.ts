@@ -147,6 +147,39 @@ export const login = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      throw new AppError('Not authenticated', 401);
+    }
+    
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        phone: true,
+      }
+    });
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: { user },
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    console.error('Get user error:', error);
+    throw new AppError('Failed to fetch user data', 500);
+  }
+};
+
 // Refresh token endpoint
 export const refreshToken = async (req: AuthRequest, res: Response) => {
   try {

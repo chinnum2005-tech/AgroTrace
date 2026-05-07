@@ -164,6 +164,80 @@ export const getRecentEvents = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Get ALL supply chain events for Blockchain Explorer
+ * Supports search by product name, actor, event type, tx hash
+ */
+export const getAllEvents = async (req: AuthRequest, res: Response) => {
+  try {
+    const limit  = parseInt(req.query.limit  as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const search = (req.query.search as string) || '';
+
+    // Build a flexible where clause for search
+    const where = search
+      ? {
+          OR: [
+            { eventType:       { equals: search.toUpperCase() as any } },
+            { location:        { contains: search, mode: 'insensitive' as const } },
+            { transactionHash: { contains: search, mode: 'insensitive' as const } },
+            {
+              product: {
+                name: { contains: search, mode: 'insensitive' as const },
+              },
+            },
+            {
+              actor: {
+                OR: [
+                  { firstName: { contains: search, mode: 'insensitive' as const } },
+                  { lastName:  { contains: search, mode: 'insensitive' as const } },
+                ],
+              },
+            },
+          ],
+        }
+      : {};
+
+    const [total, events] = await Promise.all([
+      prisma.supplyChainEvent.count({ where }),
+      prisma.supplyChainEvent.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        include: {
+          product: { select: { name: true, sku: true } },
+          actor: { select: { firstName: true, lastName: true, role: true } },
+        },
+        orderBy: { timestamp: 'desc' },
+      }),
+    ]);
+
+    const formattedEvents = events.map(event => ({
+      id:              event.id,
+      hash:            event.transactionHash || null,
+      blockNumber:     event.blockNumber     || null,
+      eventType:       event.eventType,
+      productId:       event.productId,
+      productName:     (event as any).product?.name   || 'Unknown Product',
+      productSku:      (event as any).product?.sku    || '',
+      actor:           (event as any).actor ? `${(event as any).actor.firstName} ${(event as any).actor.lastName}` : 'System',
+      actorRole:       (event as any).actor?.role     || 'SYSTEM',
+      location:        event.location        || 'Unknown',
+      timestamp:       event.timestamp,
+      verified:        event.verified,
+      metadata:        event.metadata ? JSON.parse(event.metadata) : null,
+    }));
+
+    res.json({
+      success: true,
+      total,
+      data: formattedEvents,
+    });
+  } catch (error) {
+    throw new AppError('Failed to fetch blockchain events', 500);
+  }
+};
+
+/**
  * Get supply chain events by user's products (for farmer dashboard)
  */
 export const getMyProductEvents = async (req: AuthRequest, res: Response) => {

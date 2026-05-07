@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Upload, X, ZoomIn, Trash2, MapPin, Calendar, Tag, Grid, List } from 'lucide-react';
+import { Camera, Upload, X, ZoomIn, Trash2, MapPin, Calendar, Tag, Grid, List, Store, ShoppingCart, Shield, MessageCircle, LogOut } from 'lucide-react';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 
 interface CropPhoto {
   id: string;
@@ -121,8 +122,19 @@ export default function FarmGallery() {
     if (selectedPhoto?.id === id) setSelectedPhoto(null);
   };
 
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const dockItems: DockItem[] = [
+    { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'orders',    icon: ShoppingCart,  label: 'My Orders',                  gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
+    { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
+    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery', active: true, gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-6 pb-28">
+    <div className={`min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-6 ${isAuthenticated ? 'pb-32' : ''}`}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -325,6 +337,9 @@ export default function FarmGallery() {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* macOS-style magnification dock */}
+      {isAuthenticated && <MacDock items={dockItems} />}
     </div>
   );
 }

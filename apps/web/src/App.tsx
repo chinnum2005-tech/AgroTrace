@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 // Pages
@@ -44,19 +44,155 @@ import Navbar from './components/Navbar';
 // Types
 import { User } from './types';
 
+// Inner component that uses useLocation (must be inside Router)
+function AppContent({
+  user,
+  isAuthenticated,
+  handleLogin,
+  handleLogout,
+  loading,
+}: {
+  user: User | null;
+  isAuthenticated: boolean;
+  handleLogin: (user: User, token: string) => void;
+  handleLogout: () => void;
+  loading: boolean;
+}) {
+  const location = useLocation();
+  const hideNavbar = location.pathname === '/login' || location.pathname === '/';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-950 to-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
+          <p className="text-green-400 text-sm font-medium">Loading FarmConnect...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background dark:bg-gray-950 transition-colors duration-300">
+      {!hideNavbar && <Navbar user={user} onLogout={handleLogout} />}
+      <main className="flex-1">
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Landing />} />
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />}
+          />
+
+          {/* Role-based dashboard routes */}
+          <Route
+            path="/farmer/dashboard"
+            element={isAuthenticated && user?.role === 'FARMER' ? <FarmerDashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/distributor/dashboard"
+            element={isAuthenticated && user?.role === 'DISTRIBUTOR' ? <DistributorDashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/admin/dashboard"
+            element={isAuthenticated && user?.role === 'ADMIN' ? <AdminDashboard /> : <Navigate to="/login" />}
+          />
+
+          {/* Generic dashboard redirect */}
+          <Route
+            path="/dashboard"
+            element={
+              isAuthenticated ? (
+                user?.role === 'FARMER' ? <Navigate to="/farmer/dashboard" /> :
+                user?.role === 'DISTRIBUTOR' ? <Navigate to="/distributor/dashboard" /> :
+                user?.role === 'ADMIN' ? <Navigate to="/admin/dashboard" /> :
+                <Navigate to="/marketplace" />
+              ) : <Navigate to="/login" />
+            }
+          />
+
+          {/* Public pages */}
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/verify" element={<Verify />} />
+          <Route path="/trace/:productId" element={<ProductTracePro />} />
+          <Route path="/map-demo" element={<MapDemo />} />
+          <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/disease-detection" element={<DiseaseDetection />} />
+          <Route path="/blockchain" element={<BlockchainExplorer />} />
+          <Route path="/weather" element={<WeatherIntelligence />} />
+
+          {/* Authenticated pages */}
+          <Route path="/farms" element={isAuthenticated ? <Farms user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+          <Route path="/crops" element={isAuthenticated ? <Crops user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+          <Route path="/supply-chain" element={isAuthenticated ? <SupplyChain user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
+          <Route path="/gallery" element={isAuthenticated ? <FarmGallery /> : <Navigate to="/login" />} />
+
+          {/* Protected Admin Routes */}
+          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><UsersPage /></ProtectedRoute>} />
+          <Route path="/admin/farms" element={<ProtectedRoute allowedRoles={['ADMIN']}><FarmsPage /></ProtectedRoute>} />
+          <Route path="/admin/products" element={<ProtectedRoute allowedRoles={['ADMIN']}><ProductsPage /></ProtectedRoute>} />
+          <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={['ADMIN']}><AnalyticsPage /></ProtectedRoute>} />
+          <Route path="/admin/verifications" element={<ProtectedRoute allowedRoles={['ADMIN']}><VerificationPage /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><SettingsPage /></ProtectedRoute>} />
+
+          {/* Default redirect */}
+          <Route path="/*" element={<Navigate to="/dashboard" />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    if (token && userData) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
-    }
-    setLoading(false);
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      // If we're using the offline demo token, just trust local storage
+      if (token === 'offline-demo-token') {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          setIsAuthenticated(true);
+          setUser(JSON.parse(userData));
+        }
+        setLoading(false);
+        return;
+      }
+      
+      if (token) {
+        try {
+          // Import authService dynamically to avoid circular dependency issues if any
+          const { authService } = await import('./services/authService');
+          const freshUser = await authService.getMe();
+          if (freshUser) {
+            setIsAuthenticated(true);
+            setUser(freshUser);
+          } else {
+            handleLogout(); // Token invalid
+          }
+        } catch (error) {
+          console.error("Session verification failed:", error);
+          // If offline but we have a token, we might want to keep the session alive 
+          // or force login. For now, if the server returns 401, logout. 
+          // If it's a network error, keep the cached user.
+          if ((error as any)?.response?.status === 401) {
+            handleLogout();
+          } else {
+            const userData = localStorage.getItem('user');
+            if (userData) {
+              setIsAuthenticated(true);
+              setUser(JSON.parse(userData));
+            }
+          }
+        }
+      }
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const handleLogin = (userData: User, token: string) => {
@@ -73,14 +209,6 @@ function App() {
     setUser(null);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <ThemeProvider>
@@ -89,73 +217,13 @@ function App() {
             <NetworkStatus />
             <DemoModeToggle />
             <Router>
-              <div className="min-h-screen bg-background dark:bg-gray-900 transition-colors duration-300">
-                <Navbar user={user} onLogout={handleLogout} />
-                <main className="flex-1">
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<Landing />} />
-                    <Route
-                      path="/login"
-                      element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />}
-                    />
-
-                    {/* Role-based dashboard routes */}
-                    <Route
-                      path="/farmer/dashboard"
-                      element={isAuthenticated && user?.role === 'FARMER' ? <FarmerDashboard /> : <Navigate to="/login" />}
-                    />
-                    <Route
-                      path="/distributor/dashboard"
-                      element={isAuthenticated && user?.role === 'DISTRIBUTOR' ? <DistributorDashboard /> : <Navigate to="/login" />}
-                    />
-                    <Route
-                      path="/admin/dashboard"
-                      element={isAuthenticated && user?.role === 'ADMIN' ? <AdminDashboard /> : <Navigate to="/login" />}
-                    />
-
-                    {/* Generic dashboard redirect */}
-                    <Route
-                      path="/dashboard"
-                      element={
-                        isAuthenticated ? (
-                          user?.role === 'FARMER' ? <Navigate to="/farmer/dashboard" /> :
-                          user?.role === 'DISTRIBUTOR' ? <Navigate to="/distributor/dashboard" /> :
-                          user?.role === 'ADMIN' ? <Navigate to="/admin/dashboard" /> :
-                          <Navigate to="/marketplace" />
-                        ) : <Navigate to="/login" />
-                      }
-                    />
-
-                    {/* Public pages */}
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/verify" element={<Verify />} />
-                    <Route path="/trace/:productId" element={<ProductTracePro />} />
-                    <Route path="/map-demo" element={<MapDemo />} />
-                    <Route path="/chatbot" element={<Chatbot />} />
-                    <Route path="/disease-detection" element={<DiseaseDetection />} />
-                    <Route path="/blockchain" element={<BlockchainExplorer />} />
-                    <Route path="/weather" element={<WeatherIntelligence />} />
-
-                    {/* Authenticated pages */}
-                    <Route path="/farms" element={isAuthenticated ? <Farms user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
-                    <Route path="/crops" element={isAuthenticated ? <Crops user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
-                    <Route path="/supply-chain" element={isAuthenticated ? <SupplyChain user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
-                    <Route path="/gallery" element={isAuthenticated ? <FarmGallery /> : <Navigate to="/login" />} />
-
-                    {/* Protected Admin Routes */}
-                    <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><UsersPage /></ProtectedRoute>} />
-                    <Route path="/admin/farms" element={<ProtectedRoute allowedRoles={['ADMIN']}><FarmsPage /></ProtectedRoute>} />
-                    <Route path="/admin/products" element={<ProtectedRoute allowedRoles={['ADMIN']}><ProductsPage /></ProtectedRoute>} />
-                    <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={['ADMIN']}><AnalyticsPage /></ProtectedRoute>} />
-                    <Route path="/admin/verifications" element={<ProtectedRoute allowedRoles={['ADMIN']}><VerificationPage /></ProtectedRoute>} />
-                    <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><SettingsPage /></ProtectedRoute>} />
-
-                    {/* Default redirect */}
-                    <Route path="/*" element={<Navigate to="/dashboard" />} />
-                  </Routes>
-                </main>
-              </div>
+              <AppContent
+                user={user}
+                isAuthenticated={isAuthenticated}
+                handleLogin={handleLogin}
+                handleLogout={handleLogout}
+                loading={loading}
+              />
             </Router>
             <ToastContainer />
           </AuthProvider>

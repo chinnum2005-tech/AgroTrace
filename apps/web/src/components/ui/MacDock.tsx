@@ -3,7 +3,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 export interface DockItem {
   id: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: any;
   label: string;
   href?: string;
   onClick?: () => void;

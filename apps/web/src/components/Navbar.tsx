@@ -1,6 +1,6 @@
 import { Leaf, User, Menu, X, LogOut, Moon, Sun, Microscope, Shield, Camera } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import NotificationBell from './NotificationBell';
@@ -17,8 +17,10 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
   const { t } = useTranslation();
+  const isOnLoginPage = location.pathname === '/login';
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -60,7 +62,7 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2.5">
+          <Link to={isLoggedIn ? '/dashboard' : '/'} className="flex items-center space-x-2.5">
             <div className="p-1.5 bg-green-600 rounded-lg">
               <Leaf className="h-5 w-5 text-white" />
             </div>
@@ -145,7 +147,7 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
                   <span>{t('nav.logout')}</span>
                 </button>
               </div>
-            ) : (
+            ) : !isOnLoginPage ? (
               <Link
                 to="/login"
                 className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-colors font-medium text-sm shadow-md hover:shadow-lg"
@@ -153,7 +155,7 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
                 <User className="h-4 w-4" />
                 <span>{t('nav.login')}</span>
               </Link>
-            )}
+            ) : null}
           </div>
 
           {/* Mobile: Dark toggle + Hamburger */}

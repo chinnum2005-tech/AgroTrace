@@ -17,23 +17,29 @@ interface DetectionResult {
   preventions: string[];
   affectedCrop: string;
   top3?: Prediction[];
+  isSimulation?: boolean;
+  serviceOffline?: boolean;
 }
 
 // Smart parser to generate dynamic content for 38 classes
-const generateContentForDisease = (rawId: string, confidence: number, top3?: Prediction[]): DetectionResult => {
+const generateContentForDisease = (rawId: string, confidence: number, top3?: Prediction[], isSimulation?: boolean): DetectionResult => {
+  // Strip simulation prefix if present
+  const cleanId = rawId.replace(/^SIMULATION___/, '');
+  const isSimMode = isSimulation || rawId.startsWith('SIMULATION___');
+
   // e.g., "Tomato___Early_blight" -> "Tomato", "Early blight"
-  const parts = rawId.split('___');
+  const parts = cleanId.split('___');
   const crop = parts[0]?.replace(/_/g, ' ') || 'Unknown Crop';
-  let diseaseName = parts[1]?.replace(/_/g, ' ') || rawId;
-  
-  const isHealthy = rawId.toLowerCase().includes('healthy');
-  
+  let diseaseName = parts[1]?.replace(/_/g, ' ') || cleanId;
+
+  const isHealthy = cleanId.toLowerCase().includes('healthy');
+
   if (isHealthy) {
     return {
       disease: 'Healthy Crop',
       confidence,
       severity: 'Low',
-      description: `Your ${crop} crop appears healthy! The CNN model detected no significant visual disease symptoms. Continue good agricultural practices.`,
+      description: `Your ${crop} crop appears healthy! No significant disease symptoms were detected. Continue your current agricultural practices.`,
       affectedCrop: crop,
       symptoms: ['No visible disease lesions', 'Normal leaf color and structure'],
       treatments: ['No chemical treatments required at this time'],
@@ -42,7 +48,8 @@ const generateContentForDisease = (rawId: string, confidence: number, top3?: Pre
         'Monitor soil moisture levels',
         'Continue regular visual scouting'
       ],
-      top3
+      top3,
+      isSimulation: isSimMode,
     };
   }
 
@@ -52,7 +59,7 @@ const generateContentForDisease = (rawId: string, confidence: number, top3?: Pre
   if (diseaseName.toLowerCase().includes('virus')) severity = 'Critical';
 
   return {
-    disease: `${diseaseName}`,
+    disease: diseaseName,
     confidence,
     severity,
     description: `The AI model identified ${diseaseName} on your ${crop}. This is a common agricultural issue that can reduce yield if left untreated.`,
@@ -72,7 +79,8 @@ const generateContentForDisease = (rawId: string, confidence: number, top3?: Pre
       'Practice crop rotation to break pathogen life cycles',
       'Avoid overhead watering to keep foliage dry'
     ],
-    top3
+    top3,
+    isSimulation: isSimMode,
   };
 };
 
@@ -114,30 +122,42 @@ export default function DiseaseDetection() {
   const handleAnalyze = async () => {
     if (!selectedFile) return;
     setAnalyzing(true);
-    
+
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
       const AI_URL = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000';
-      
+
       const response = await fetch(`${AI_URL}/predict/disease`, {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Prediction failed');
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
       const data = await response.json();
-      
+
       // { disease_id: "Tomato___Early_blight", confidence: 95.5, top_3: [...] }
-      const content = generateContentForDisease(data.disease_id, data.confidence, data.top_3);
+      // disease_id may be prefixed with "SIMULATION___" if real model didn't load
+      const isSimulation = data.disease_id?.startsWith('SIMULATION___');
+      const content = generateContentForDisease(data.disease_id, data.confidence, data.top_3, isSimulation);
       setResult(content);
-      
+
     } catch (error) {
       console.error('Error analyzing image:', error);
-      // Fallback
-      setResult(generateContentForDisease('Network___Connection_Error', 0));
+      // Show offline error instead of a fake disease result
+      setResult({
+        disease: 'AI Service Unavailable',
+        confidence: 0,
+        severity: 'Low',
+        description: 'Could not connect to the AI analysis service. Please make sure the AI service is running on port 8000, then try again.',
+        affectedCrop: 'Unknown',
+        symptoms: [],
+        treatments: ['Start the AI service: run `python main.py` in services/ai-service/'],
+        preventions: [],
+        serviceOffline: true,
+      });
     } finally {
       setAnalyzing(false);
     }
@@ -165,12 +185,12 @@ export default function DiseaseDetection() {
               <Microscope className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold mb-1">🔬 Deep-CNN Disease Analysis</h1>
-              <p className="text-green-100 text-lg">Upload a photo of your crop leaf for instant AI-powered 38-class diagnosis</p>
+              <h1 className="text-3xl font-bold mb-1">🔬 AI Crop Disease Detector</h1>
+              <p className="text-green-100 text-lg">Upload a photo of your crop leaf and get instant disease diagnosis with treatment advice</p>
               <div className="flex items-center gap-4 mt-3 text-green-50 text-sm">
-                <span className="flex items-center gap-1"><Zap className="h-4 w-4" /> PlantVillage CNN Model</span>
-                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4" /> Top-3 Confidence</span>
-                <span className="flex items-center gap-1"><BookOpen className="h-4 w-4" /> 38 Disease Classes</span>
+                <span className="flex items-center gap-1"><Zap className="h-4 w-4" /> Instant Analysis</span>
+                <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4" /> Top-3 Results</span>
+                <span className="flex items-center gap-1"><BookOpen className="h-4 w-4" /> 38 Disease Types</span>
               </div>
             </div>
           </div>
@@ -243,9 +263,9 @@ export default function DiseaseDetection() {
                   className="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
                 >
                   {analyzing ? (
-                    <><RefreshCw className="h-6 w-6 animate-spin" /> Deep Network Inferencing...</>
+                    <><RefreshCw className="h-6 w-6 animate-spin" /> Analyzing your crop image...</>
                   ) : (
-                    <><Microscope className="h-6 w-6" /> Run Convolutional Neural Network</>
+                    <><Microscope className="h-6 w-6" /> Diagnose My Crop</>
                   )}
                 </button>
               </div>
@@ -269,8 +289,8 @@ export default function DiseaseDetection() {
                 >
                   <div className="text-center text-gray-400 dark:text-gray-600">
                     <Leaf className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                    <p className="text-lg font-medium">Awaiting Input Tensor</p>
-                    <p className="text-sm mt-2">Upload an image to process through the 38-class ResNet/MobileNet model.</p>
+                    <p className="text-lg font-medium">Ready to analyze</p>
+                    <p className="text-sm mt-2">Upload a clear photo of a leaf to detect diseases and get treatment recommendations.</p>
                   </div>
                 </motion.div>
               )}
@@ -282,8 +302,34 @@ export default function DiseaseDetection() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden"
                 >
+                  {/* Service offline banner */}
+                  {result.serviceOffline && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 p-4 flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-red-700 dark:text-red-400 text-sm">AI Service Offline</p>
+                        <p className="text-red-600 dark:text-red-400 text-xs mt-0.5">
+                          Start the AI service by running: <code className="bg-red-100 dark:bg-red-900 px-1 rounded">python main.py</code> in <code className="bg-red-100 dark:bg-red-900 px-1 rounded">services/ai-service/</code>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {/* Simulation mode warning */}
+                  {result.isSimulation && !result.serviceOffline && (
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 p-4 flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-amber-700 dark:text-amber-400 text-sm">⚠️ Simulation Mode — Results are NOT from the real CNN model</p>
+                        <p className="text-amber-600 dark:text-amber-400 text-xs mt-0.5">
+                          The real PlantVillage model failed to load (TensorFlow DLL issue). Results shown are hash-based and inaccurate. Check AI service logs for details.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div className={`p-6 ${
-                    result.disease === 'Healthy Crop'
+                    result.serviceOffline
+                      ? 'bg-gradient-to-r from-gray-500 to-gray-600'
+                      : result.disease === 'Healthy Crop'
                       ? 'bg-gradient-to-r from-green-500 to-emerald-600'
                       : 'bg-gradient-to-r from-orange-500 to-red-600'
                   } text-white`}>
@@ -293,11 +339,12 @@ export default function DiseaseDetection() {
                         <p className="text-white/80 text-sm mt-1">Host Crop: {result.affectedCrop}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-bold">{result.confidence}%</div>
-                        <div className="text-white/80 text-sm">Top-1 Confidence</div>
+                        <div className="text-3xl font-bold">{result.confidence > 0 ? `${result.confidence}%` : '—'}</div>
+                        <div className="text-white/80 text-sm">Confidence</div>
                       </div>
                     </div>
                   </div>
+
 
                   <div className="p-6 space-y-5 max-h-[600px] overflow-y-auto">
                     

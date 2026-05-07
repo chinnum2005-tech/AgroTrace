@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, CheckCircle, MapPin, Calendar, User, Truck, Package, Sprout, 
   ShoppingCart, Shield, Award, Clock, TrendingUp, BarChart3, QrCode,
-  Leaf, Thermometer, Droplets, Activity, ExternalLink, Play, AlertTriangle
+  Leaf, Thermometer, Droplets, Activity, ExternalLink, Play, AlertTriangle,
+  Store, MessageCircle, Camera, LogOut
 } from 'lucide-react';
+import MacDock, { DockItem } from '../components/ui/MacDock';
 import { supplyChainService } from '../services/supplyChainService';
 import SupplyChainMap from '../components/SupplyChainMap';
 import { 
@@ -126,6 +128,17 @@ export default function ProductTracePro() {
       setLoading(false);
     }
   };
+
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const dockItems: DockItem[] = [
+    { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
+    { id: 'trace',     icon: QrCode,        label: 'Traceability', active: true, gradient: 'linear-gradient(135deg,#10b981,#047857)',  onClick: () => window.location.href='/verify' },
+    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
+    { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
+    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+  ];
 
   const getEventIcon = (eventType: string) => {
     switch (eventType) {
@@ -249,7 +262,7 @@ export default function ProductTracePro() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <div className={`min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 ${isAuthenticated ? 'pb-32' : ''}`}>
       {/* Error Banner */}
       {error && (
         <motion.div
@@ -688,6 +701,9 @@ export default function ProductTracePro() {
           </div>
         </div>
       </motion.div>
+      
+      {/* macOS-style magnification dock */}
+      {isAuthenticated && <MacDock items={dockItems} />}
     </div>
   );
 }

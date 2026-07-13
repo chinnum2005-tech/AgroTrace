@@ -2,6 +2,7 @@ import { Response } from 'express';
 import QRCode from 'qrcode';
 import prisma from '../database/prisma';
 import { AppError } from '../middleware/errorHandler';
+import crypto from 'crypto';
 
 // Verify product by QR code (public endpoint)
 export const verifyProduct = async (req: any, res: Response) => {
@@ -93,8 +94,8 @@ export const generateQRCode = async (req: any, res: Response) => {
       throw new AppError('Crop not found', 404);
     }
 
-    // Generate unique QR code data
-    const qrData = `FARMCONNECT-${cropId}-${Date.now()}`;
+    // Generate unique, unpredictable QR code data (MED-002)
+    const qrData = crypto.randomBytes(16).toString('hex');
 
     // Generate QR code image as base64
     const qrCodeImage = await QRCode.toDataURL(qrData);

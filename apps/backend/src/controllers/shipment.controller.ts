@@ -74,7 +74,7 @@ export const getMyShipments = async (req: AuthRequest, res: Response) => {
  */
 export const updateShipmentStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const { shipmentId, status, currentLocation } = req.body;
+    const { shipmentId, status, currentLocation, version } = req.body;
 
     if (!shipmentId || !status) {
       throw new AppError('Shipment ID and status are required', 400);
@@ -86,12 +86,31 @@ export const updateShipmentStatus = async (req: AuthRequest, res: Response) => {
       throw new AppError('Invalid shipment status', 400);
     }
 
+    // Verify ownership
+    const existingShipment = await prisma.shipment.findUnique({
+      where: { id: shipmentId }
+    });
+    
+    if (!existingShipment) {
+      throw new AppError('Shipment not found', 404);
+    }
+    
+    if (existingShipment.distributorId !== req.user!.id && req.user!.role !== 'ADMIN') {
+      throw new AppError('Unauthorized to update this shipment', 403);
+    }
+
+    // Optimistic locking check
+    if (version !== undefined && existingShipment.version !== version) {
+      throw new AppError('Conflict detected. Shipment has been modified by another transaction. Please refresh and try again.', 409, existingShipment);
+    }
+
     const shipment = await prisma.shipment.update({
       where: { id: shipmentId },
       data: {
         status,
         currentLocation: currentLocation || null,
         actualDelivery: status === 'DELIVERED' ? new Date() : null,
+        version: { increment: 1 }
       },
     });
 
@@ -202,6 +221,18 @@ export const claimShipment = async (req: AuthRequest, res: Response) => {
   try {
     const { shipmentId } = req.body;
     const userId = req.user!.id;
+
+    const existingShipment = await prisma.shipment.findUnique({
+      where: { id: shipmentId }
+    });
+
+    if (!existingShipment) {
+      throw new AppError('Shipment not found', 404);
+    }
+
+    if (existingShipment.distributorId !== null) {
+      throw new AppError('Shipment already claimed', 400);
+    }
 
     const shipment = await prisma.shipment.update({
       where: { id: shipmentId },

@@ -40,6 +40,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import ConflictResolutionModal from './components/ConflictResolutionModal';
 
 // Types
 import { User } from './types';
@@ -54,7 +55,7 @@ function AppContent({
 }: {
   user: User | null;
   isAuthenticated: boolean;
-  handleLogin: (user: User, token: string) => void;
+  handleLogin: (user: User) => void;
   handleLogout: () => void;
   loading: boolean;
 }) {
@@ -150,10 +151,11 @@ function App() {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('token');
-      // If we're using the offline demo token, just trust local storage
-      if (token === 'offline-demo-token') {
-        const userData = localStorage.getItem('user');
+      // Since token is in cookie, we rely on the presence of user data in localStorage to decide whether to check session
+      const userData = localStorage.getItem('user');
+      
+      // If we're using the offline demo mode
+      if (localStorage.getItem('demoMode') === 'true') {
         if (userData) {
           setIsAuthenticated(true);
           setUser(JSON.parse(userData));
@@ -162,7 +164,7 @@ function App() {
         return;
       }
       
-      if (token) {
+      if (userData) {
         try {
           // Import authService dynamically to avoid circular dependency issues if any
           const { authService } = await import('./services/authService');
@@ -195,16 +197,15 @@ function App() {
     initAuth();
   }, []);
 
-  const handleLogin = (userData: User, token: string) => {
-    localStorage.setItem('token', token);
+  const handleLogin = (userData: User) => {
     localStorage.setItem('user', JSON.stringify(userData));
     setIsAuthenticated(true);
     setUser(userData);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    const { authService } = await import('./services/authService');
+    await authService.logout();
     setIsAuthenticated(false);
     setUser(null);
   };
@@ -213,10 +214,10 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <NotificationProvider>
-          <AuthProvider>
-            <NetworkStatus />
-            <DemoModeToggle />
-            <Router>
+          <Router>
+            <AuthProvider>
+              <NetworkStatus />
+              <DemoModeToggle />
               <AppContent
                 user={user}
                 isAuthenticated={isAuthenticated}
@@ -224,9 +225,10 @@ function App() {
                 handleLogout={handleLogout}
                 loading={loading}
               />
-            </Router>
-            <ToastContainer />
-          </AuthProvider>
+              <ToastContainer />
+              <ConflictResolutionModal />
+            </AuthProvider>
+          </Router>
         </NotificationProvider>
       </ThemeProvider>
     </ErrorBoundary>

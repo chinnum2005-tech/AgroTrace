@@ -9,7 +9,7 @@ import {
 import { authService } from '../services/authService';
 
 interface LoginProps {
-  onLogin: (user: any, token: string) => void;
+  onLogin: (user: any) => void;
 }
 
 // These only activate when the backend server is completely unreachable (network error)
@@ -50,18 +50,16 @@ export default function Login({ onLogin }: LoginProps) {
       if (isRegister) {
         const response = await authService.register(formData);
         if (response.success && response.data) {
-          localStorage.setItem('token', response.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.user));
-          onLogin(response.data.user, response.data.token);
+          onLogin(response.data.user);
         } else {
           setError(response.message || 'Registration failed');
         }
       } else {
         const response = await authService.login(formData.email, formData.password);
         if (response.success && response.data) {
-          localStorage.setItem('token', response.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.user));
-          onLogin(response.data.user, response.data.token);
+          onLogin(response.data.user);
         } else {
           setError(response.message || 'Login failed');
         }
@@ -72,10 +70,9 @@ export default function Login({ onLogin }: LoginProps) {
         const demo = OFFLINE_DEMO_USERS[formData.email.toLowerCase()];
         if (demo && demo.password === formData.password) {
           setUsingOfflineMode(true);
-          const offlineToken = 'offline-demo-token';
-          localStorage.setItem('token', offlineToken);
+          localStorage.setItem('demoMode', 'true');
           localStorage.setItem('user', JSON.stringify(demo.user));
-          onLogin(demo.user, offlineToken);
+          onLogin(demo.user);
           return;
         }
         setError('Cannot reach the server. Check that the backend is running on port 3001.');
@@ -94,9 +91,8 @@ export default function Login({ onLogin }: LoginProps) {
     try {
       const response = await authService.login(card.email, card.password);
       if (response.success && response.data) {
-        localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        onLogin(response.data.user, response.data.token);
+        onLogin(response.data.user);
       } else {
         setError(response.message || 'Login failed');
       }
@@ -106,10 +102,9 @@ export default function Login({ onLogin }: LoginProps) {
         const demo = OFFLINE_DEMO_USERS[card.email];
         if (demo) {
           setUsingOfflineMode(true);
-          const offlineToken = 'offline-demo-token';
-          localStorage.setItem('token', offlineToken);
+          localStorage.setItem('demoMode', 'true');
           localStorage.setItem('user', JSON.stringify(demo.user));
-          onLogin(demo.user, offlineToken);
+          onLogin(demo.user);
           return;
         }
       }
@@ -280,6 +275,7 @@ export default function Login({ onLogin }: LoginProps) {
                       type="text"
                       required={isRegister}
                       placeholder="John"
+                      aria-label="First Name"
                       className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all text-sm"
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
@@ -295,6 +291,7 @@ export default function Login({ onLogin }: LoginProps) {
                       type="text"
                       required={isRegister}
                       placeholder="Farmer"
+                      aria-label="Last Name"
                       className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all text-sm"
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
@@ -314,6 +311,7 @@ export default function Login({ onLogin }: LoginProps) {
                   required
                   autoComplete="email"
                   placeholder="you@example.com"
+                  aria-label="Email Address"
                   className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -331,6 +329,7 @@ export default function Login({ onLogin }: LoginProps) {
                   required
                   autoComplete={isRegister ? 'new-password' : 'current-password'}
                   placeholder="••••••••"
+                  aria-label="Password"
                   className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-500 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -350,6 +349,7 @@ export default function Login({ onLogin }: LoginProps) {
                 <label className="text-slate-300 text-sm font-medium mb-1.5 block">{t('auth.role')}</label>
                 <select
                   id="role"
+                  aria-label="Account Role"
                   className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500/50 transition-all"
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}

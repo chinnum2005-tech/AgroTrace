@@ -38,7 +38,6 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
     if (propLogout) {
       propLogout();
     } else {
-      localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
     setIsLoggedIn(false);

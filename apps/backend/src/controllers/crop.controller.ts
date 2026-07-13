@@ -122,7 +122,7 @@ export const updateCropStage = async (req: AuthRequest, res: Response) => {
     }
 
     const { id } = req.params;
-    const { growthStage }: UpdateCropStageInput = req.body;
+    const { growthStage, version } = req.body;
 
     const crop = await prisma.crop.findUnique({ 
       where: { id },
@@ -138,9 +138,17 @@ export const updateCropStage = async (req: AuthRequest, res: Response) => {
       throw new AppError('Unauthorized to update this crop', 403);
     }
 
+    // Optimistic locking check
+    if (version !== undefined && crop.version !== version) {
+      throw new AppError('Conflict detected. Crop has been modified by another transaction. Please refresh and try again.', 409, crop);
+    }
+
     const updatedCrop = await prisma.crop.update({
       where: { id },
-      data: { growthStage },
+      data: { 
+        growthStage,
+        version: { increment: 1 } 
+      },
     });
 
     res.json({ 

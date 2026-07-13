@@ -20,12 +20,15 @@ export const authenticate = (
 ) => {
   try {
     const authHeader = req.headers.authorization;
+    let token = req.cookies?.token;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AppError('Authentication required. Please provide a valid token.', 401);
+    if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '');
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    if (!token) {
+      throw new AppError('Authentication required. Please provide a valid token.', 401);
+    }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       id: string;
@@ -88,9 +91,13 @@ export const optionalAuth = (
 ) => {
   try {
     const authHeader = req.headers.authorization;
+    let token = req.cookies?.token;
     
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '');
+    if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '');
+    }
+
+    if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
         id: string;
         email: string;

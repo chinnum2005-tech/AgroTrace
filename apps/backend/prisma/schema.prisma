@@ -55,7 +55,7 @@ enum EventType {
 
 // User model
 model User {
-  id            String    @id @default(uuid())
+  id            String    @id @default(cuid())
   email         String    @unique
   password      String
   firstName     String
@@ -76,7 +76,7 @@ model User {
 
 // Farm model
 model Farm {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
   name            String
   description     String?
   location        Json     // { lat, lng, address }
@@ -93,7 +93,8 @@ model Farm {
 
 // Crop model
 model Crop {
-  id              String      @id @default(uuid())
+  id              String      @id @default(cuid())
+  publicSlug      String      @unique @default(cuid())
   name            String
   type            CropType
   variety         String?
@@ -111,6 +112,7 @@ model Crop {
   qrCode          String?     @unique
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  version         Int         @default(1)
 
   @@index([farmId])
   @@index([type])
@@ -119,7 +121,8 @@ model Crop {
 
 // Product model (packaged goods from crops)
 model Product {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
+  publicSlug      String   @unique @default(cuid())
   name            String
   sku             String   @unique
   cropId          String
@@ -135,6 +138,7 @@ model Product {
   orderItems      OrderItem[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  version         Int      @default(1)
 
   @@index([cropId])
   @@index([sku])
@@ -144,7 +148,7 @@ model Product {
 
 // AI Prediction model
 model AIPrediction {
-  id            String   @id @default(uuid())
+  id            String   @id @default(cuid())
   cropId        String
   crop          Crop     @relation(fields: [cropId], references: [id], onDelete: Cascade)
   predictedYield Float
@@ -157,7 +161,7 @@ model AIPrediction {
 
 // Supply Chain Event model (blockchain reference)
 model SupplyChainEvent {
-  id              String    @id @default(uuid())
+  id              String    @id @default(cuid())
   productId       String    // Product ID or Crop ID
   eventType       EventType
   timestamp       DateTime
@@ -177,11 +181,12 @@ model SupplyChainEvent {
   @@index([eventType])
   @@index([transactionHash])
   @@index([cropId])
+  @@index([actorId])
 }
 
 // Audit log for compliance
 model AuditLog {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   action    String
   entity    String
   entityId  String
@@ -196,7 +201,7 @@ model AuditLog {
 
 // Cart model for e-commerce
 model Cart {
-  id        String     @id @default(uuid())
+  id        String     @id @default(cuid())
   userId    String     @unique
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
@@ -208,7 +213,7 @@ model Cart {
 
 // Cart Item
 model CartItem {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   cartId    String
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   productId String
@@ -224,7 +229,7 @@ model CartItem {
 
 // Order model
 model Order {
-  id              String      @id @default(uuid())
+  id              String      @id @default(cuid())
   consumerId      String
   consumer        User        @relation(fields: [consumerId], references: [id])
   status          String      @default("PENDING")
@@ -234,6 +239,7 @@ model Order {
   shipment        Shipment?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  version         Int         @default(1)
 
   @@index([consumerId])
   @@index([status])
@@ -241,7 +247,7 @@ model Order {
 
 // Order Item
 model OrderItem {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
@@ -257,7 +263,7 @@ model OrderItem {
 
 // Shipment tracking
 model Shipment {
-  id                String   @id @default(uuid())
+  id                String   @id @default(cuid())
   orderId           String   @unique
   order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   distributorId     String?
@@ -268,4 +274,7 @@ model Shipment {
   actualDelivery    DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  version           Int      @default(1)
+
+  @@index([distributorId])
 }

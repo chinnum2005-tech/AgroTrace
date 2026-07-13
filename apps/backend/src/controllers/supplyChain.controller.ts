@@ -69,10 +69,19 @@ export const addSupplyChainEvent = async (req: AuthRequest, res: Response) => {
     // Verify product exists
     const product = await prisma.product.findUnique({
       where: { id: productId },
+      include: {
+        crop: {
+          include: { farm: true }
+        }
+      }
     });
 
     if (!product) {
       throw new AppError('Product not found', 404);
+    }
+
+    if (req.user!.role === 'FARMER' && product.crop.farm.userId !== userId) {
+      throw new AppError('Unauthorized to add event to this product', 403);
     }
 
     // Create supply chain event with optional coordinates

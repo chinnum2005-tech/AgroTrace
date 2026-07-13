@@ -40,6 +40,22 @@ export default function WeatherIntelligence() {
     try {
       setLoading(true);
       setError('');
+      
+      const CACHE_KEY = `weather_cache_${location.toLowerCase()}`;
+      const CACHE_TTL = 3600 * 1000; // 1 hour
+      const cachedStr = localStorage.getItem(CACHE_KEY);
+      
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        if (Date.now() - cached.timestamp < CACHE_TTL) {
+          setCurrentWeather(cached.currentData);
+          setForecast(cached.forecastData);
+          generateHistoricalData(cached.currentData.main.temp, location);
+          setLoading(false);
+          return;
+        }
+      }
+
       const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY || 'f98050b888e60451bf625061c6b8c436';
       
       const currentRes = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${apiKey}`);
@@ -48,11 +64,19 @@ export default function WeatherIntelligence() {
       setCurrentWeather(currentData);
 
       const forecastRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&units=metric&appid=${apiKey}`);
+      let finalForecast = [];
       if (forecastRes.ok) {
         const forecastData = await forecastRes.json();
         const dailyForecasts = forecastData.list.filter((item: any) => item.dt_txt.includes('12:00:00')).slice(0, 5);
-        setForecast(dailyForecasts.length > 0 ? dailyForecasts : forecastData.list.slice(0, 5));
+        finalForecast = dailyForecasts.length > 0 ? dailyForecasts : forecastData.list.slice(0, 5);
+        setForecast(finalForecast);
       }
+      
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        currentData,
+        forecastData: finalForecast
+      }));
       
       generateHistoricalData(currentData.main.temp, location);
     } catch (err: any) {
@@ -178,7 +202,7 @@ export default function WeatherIntelligence() {
     }
   };
 
-  const isAuthenticated = !!localStorage.getItem('token');
+  const isAuthenticated = !!localStorage.getItem('user');
 
   const dockItems: DockItem[] = [
     { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
@@ -187,7 +211,7 @@ export default function WeatherIntelligence() {
     { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
     { id: 'weather',   icon: Cloud,         label: 'Weather AI',  active: true, gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/weather' },
     { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
-    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/login'; } },
+    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('user'); window.location.href='/login'; } },
   ];
 
   const formatDate = (timestamp: number) => {

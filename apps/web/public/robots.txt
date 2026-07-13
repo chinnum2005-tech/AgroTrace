@@ -1,0 +1,9 @@
+# robots.txt for FarmConnect AI
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /farmer/dashboard/
+Disallow: /distributor/dashboard/
+
+Sitemap: https://farmconnect.ai/sitemap.xml

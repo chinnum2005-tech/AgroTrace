@@ -278,15 +278,35 @@ export const getFarmerOrders = async (req: AuthRequest, res: Response) => {
  */
 export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const { orderId, status } = req.body;
+    const { orderId, status, version } = req.body;
 
     if (!orderId || !status) {
       throw new AppError('Order ID and status are required', 400);
     }
 
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!existingOrder) {
+      throw new AppError('Order not found', 404);
+    }
+
+    if (existingOrder.consumerId !== req.user!.id && req.user!.role !== 'ADMIN') {
+      throw new AppError('Unauthorized to update this order', 403);
+    }
+
+    // Optimistic locking check
+    if (version !== undefined && existingOrder.version !== version) {
+      throw new AppError('Conflict detected. Order has been modified by another transaction. Please refresh and try again.', 409, existingOrder);
+    }
+
     const order = await prisma.order.update({
       where: { id: orderId },
-      data: { status },
+      data: { 
+        status,
+        version: { increment: 1 } 
+      },
     });
 
     res.json({

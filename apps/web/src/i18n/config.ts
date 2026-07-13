@@ -1,5 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import DOMPurify from 'dompurify';
 
 import en from './en.json';
 import hi from './hi.json';
@@ -14,6 +15,11 @@ import pa from './pa.json';
 import or from './or.json';
 
 i18n
+  .use({
+    type: 'postProcessor',
+    name: 'sanitize',
+    process: (value: string) => DOMPurify.sanitize(value)
+  })
   .use(initReactI18next)
   .init({
     resources: {
@@ -32,8 +38,9 @@ i18n
     lng: localStorage.getItem('farmconnect-lang') || 'en',
     fallbackLng: 'en',
     interpolation: {
-      escapeValue: false,
+      escapeValue: false, // React already does escaping, but we add postProcess for safety
     },
+    postProcess: ['sanitize'],
   });
 
 export default i18n;

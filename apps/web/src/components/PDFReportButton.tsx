@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FileText, Download, Loader2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import DOMPurify from 'dompurify';
 
 interface PDFReportButtonProps {
   targetId?: string;
@@ -61,7 +62,7 @@ export default function PDFReportButton({
     pdf.text('🌾 FarmConnect', 14, 16);
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(reportTitle, 14, 26);
+    pdf.text(DOMPurify.sanitize(reportTitle), 14, 26);
     pdf.setFontSize(9);
     pdf.text(`Generated: ${now.toLocaleString()}`, 14, 36);
 
@@ -105,9 +106,9 @@ export default function PDFReportButton({
         ],
       },
       custom: {
-        title: reportTitle,
+        title: DOMPurify.sanitize(reportTitle),
         rows: data
-          ? Object.entries(data).map(([k, v]) => [k, String(v)] as [string, string])
+          ? Object.entries(data).map(([k, v]) => [DOMPurify.sanitize(k), DOMPurify.sanitize(String(v))] as [string, string])
           : [['Report', 'FarmConnect Platform Report'], ['Date', now.toLocaleDateString()]],
       },
     };

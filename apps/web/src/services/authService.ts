@@ -29,10 +29,14 @@ export const authService = {
   },
 
   /**
-   * Logout user (client-side)
+   * Logout user
    */
-  logout: () => {
-    localStorage.removeItem('token');
+  logout: async () => {
+    try {
+      await api.post('/api/auth/logout');
+    } catch (e) {
+      console.error('Logout failed:', e);
+    }
     localStorage.removeItem('user');
   },
 
@@ -66,6 +70,6 @@ export const authService = {
    * Check if user is authenticated
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('user');
   },
 };

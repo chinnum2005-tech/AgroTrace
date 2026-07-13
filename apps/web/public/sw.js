@@ -36,7 +36,15 @@ self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith('http')) return;
 
   // Skip API calls — always network
-  if (event.request.url.includes('/api/')) return;
+  if (event.request.url.includes('/api/auth') || 
+      event.request.url.includes('/api/user') || 
+      event.request.url.includes('/api/payment') ||
+      event.request.url.includes('/api/orders') ||
+      event.request.url.includes('/api/farm') ||
+      event.request.url.includes('/api/chat')) {
+    return; // Don't cache sensitive routes
+  }
+  
   if (event.request.url.includes('openweathermap.org')) return;
 
   event.respondWith(

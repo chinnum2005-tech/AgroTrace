@@ -69,8 +69,6 @@ services:
   - type: web
     name: agrotrace-web
     env: static
-    region: oregon
-    plan: free
     rootDir: apps/web
     buildCommand: npm install && npm run build
     staticPublishPath: dist

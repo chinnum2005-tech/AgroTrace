@@ -1,12 +1,13 @@
 import axios from 'axios';
 
-// Dynamically match the hostname in development to prevent cross-origin cookie drops
-const API_BASE_URL = import.meta.env.PROD 
-  ? import.meta.env.VITE_BACKEND_URL 
-  : `http://${window.location.hostname}:3001`;
+// Dynamically match the backend URL from environment variables with fallback
+const API_BASE_URL = 
+  import.meta.env.VITE_BACKEND_URL || 
+  import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD ? 'https://agrotrace-backend.onrender.com' : `http://${window.location.hostname}:3001`);
 
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: `${API_BASE_URL.replace(/\/$/, '')}/api/v1`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

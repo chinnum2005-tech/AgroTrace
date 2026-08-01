@@ -16,7 +16,6 @@ class _BlockTF:
 if 'tensorflow' not in sys.modules:
     sys.modules['tensorflow'] = _BlockTF()  # type: ignore
 
-import torch
 from PIL import Image
 import io
 import hashlib
@@ -24,7 +23,7 @@ import hashlib
 
 class DiseasePredictor:
     def __init__(self):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = "cpu"
         # Full 38 classes from PlantVillage dataset
         self.classes = [
             "Apple___Apple_scab", "Apple___Black_rot", "Apple___Cedar_apple_rust", "Apple___healthy",
@@ -45,8 +44,8 @@ class DiseasePredictor:
         self.model = None
         self.model_loaded = False
         self.transform = None
-
-        self._load_model()
+        self._torch_model = None
+        self._extractor = None
 
     def _load_model(self):
         """
@@ -62,17 +61,15 @@ class DiseasePredictor:
             self._torch_model = AutoModelForImageClassification.from_pretrained(model_id)
             self._torch_model.eval()
             self._torch_model.to(self.device)
-
-            self._id2label = self._torch_model.config.id2label
-
             self.model_loaded = True
-            print(f"[OK] Real CNN model loaded on {self.device}! Classes: {len(self._id2label)}")
-
+            print("PlantVillage MobileNetV2 loaded successfully.")
         except Exception as e:
-            print(f"[WARNING] Could not load real model: {e}")
+            print(f"Warning: Could not load HuggingFace PlantVillage model: {e}")
             self.model_loaded = False
 
-    def predict(self, image_bytes: bytes):
+    def predict(self, image_bytes: bytes) -> dict:
+        if not self.model_loaded:
+            self._load_model()
         """
         Predict the disease from an image. Returns top 3 predictions.
         """

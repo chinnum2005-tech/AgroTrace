@@ -43,6 +43,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
       - key: PORT
         value: 10000
       - key: JWT_SECRET
@@ -62,6 +64,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
       - key: PORT
         value: 10000
     autoDeploy: true

@@ -18,8 +18,17 @@ async function main() {
   const contractAddress = await supplyChain.getAddress();
   console.log("✅ SupplyChain contract deployed to:", contractAddress);
   
+  // Deploy PredictionProvenance
+  console.log("\n🚀 Deploying PredictionProvenance contract...");
+  const PredictionProvenance = await ethers.getContractFactory("PredictionProvenance");
+  const provenance = await PredictionProvenance.deploy();
+  await provenance.waitForDeployment();
+  const provenanceAddress = await provenance.getAddress();
+  console.log("✅ PredictionProvenance contract deployed to:", provenanceAddress);
+  
   console.log("\n📋 Deployment Summary:");
-  console.log("Contract Address:", contractAddress);
+  console.log("SupplyChain Contract Address:", contractAddress);
+  console.log("PredictionProvenance Contract Address:", provenanceAddress);
   console.log("Network:", (await ethers.provider.getNetwork()).name);
   console.log("Deployer:", deployer.address);
   
@@ -29,6 +38,7 @@ async function main() {
   
   const deploymentInfo = {
     contractAddress,
+    provenanceAddress,
     deployer: deployer.address,
     network: (await ethers.provider.getNetwork()).name,
     timestamp: new Date().toISOString(),

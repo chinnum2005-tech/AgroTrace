@@ -37,9 +37,10 @@ export const getAllProducts = async (req: AuthRequest, res: Response) => {
       id: product.id,
       name: product.name,
       farmName: `${product.crop.farm.user.firstName} ${product.crop.farm.user.lastName}'s Farm`,
-      price: parseFloat((product.quantity * 0.85).toFixed(2)), // Mock pricing
-      unit: `${product.quantity}kg`,
-      rating: 4.5, // Would be calculated from reviews
+      price: product.price,
+      unit: `1 kg`,
+      availableQuantity: product.quantity,
+      rating: product.rating,
       image: getEmojiForCrop(product.crop.type),
       certified: product.crop.farm.certification ? true : false,
       location: product.storageLocation || 'Available now',
@@ -59,7 +60,7 @@ export const getAllProducts = async (req: AuthRequest, res: Response) => {
 // Create a new product (from harvested crop)
 export const createProduct = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, cropId, quantity, batchNumber, expiryDate, storageLocation } = req.body;
+    const { name, cropId, quantity, batchNumber, expiryDate, storageLocation, price } = req.body;
 
     // Verify crop belongs to user
     const crop = await prisma.crop.findUnique({
@@ -95,6 +96,8 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
         sku,
         cropId,
         quantity,
+        price: price ? parseFloat(price) : 0.0,
+        rating: 5.0, // default rating for new products
         packagingDate: new Date(),
         expiryDate: expiryDate ? new Date(expiryDate) : null,
         batchNumber,

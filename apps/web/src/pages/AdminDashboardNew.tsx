@@ -4,12 +4,14 @@ import { motion } from 'framer-motion';
 import MacDock, { DockItem } from '../components/ui/MacDock';
 import { 
   Users, Package, TrendingUp, DollarSign, Activity, BarChart3, 
-  PieChart, MapPin, ShoppingCart, Eye, Bell, Search, Filter, Settings, LogOut
+  PieChart, MapPin, ShoppingCart, Eye, Bell, Search, Filter, Settings, LogOut, AlertCircle
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, Legend
 } from 'recharts';
+
+import api from '../services/api';
 
 const COLORS = ['#16a34a', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -23,40 +25,12 @@ export default function AdminDashboard() {
     verificationRate: 0,
   });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [platformStats, setPlatformStats] = useState<any[]>([]);
+  const [userDistribution, setUserDistribution] = useState<any[]>([]);
+  const [predictionDataSources, setPredictionDataSources] = useState<any[]>([]);
+  const [topProducts, setTopProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Mock data (replace with real API calls)
-  const platformStats = [
-    { month: 'Jan', users: 120, farms: 45, products: 230, revenue: 45000 },
-    { month: 'Feb', users: 180, farms: 62, products: 340, revenue: 67000 },
-    { month: 'Mar', users: 250, farms: 78, products: 480, revenue: 92000 },
-    { month: 'Apr', users: 340, farms: 95, products: 620, revenue: 125000 },
-    { month: 'May', users: 450, farms: 118, products: 780, revenue: 168000 },
-    { month: 'Jun', users: 580, farms: 142, products: 950, revenue: 215000 },
-  ];
-
-  const userDistribution = [
-    { name: 'Farmers', value: 320 },
-    { name: 'Distributors', value: 85 },
-    { name: 'Consumers', value: 1250 },
-    { name: 'Admins', value: 12 },
-  ];
-
-  const topProducts = [
-    { id: 1, name: 'Organic Wheat', farmer: 'Green Valley Farm', quantity: '2,450 kg', revenue: '₹48,500', status: 'Active' },
-    { id: 2, name: 'Premium Rice', farmer: 'Sunny Acres', quantity: '1,890 kg', revenue: '₹37,800', status: 'Active' },
-    { id: 3, name: 'Sweet Corn', farmer: 'Harvest Fields', quantity: '3,200 kg', revenue: '₹64,000', status: 'Active' },
-    { id: 4, name: 'Soybeans', farmer: 'Green Valley Farm', quantity: '1,600 kg', revenue: '₹32,000', status: 'Pending' },
-    { id: 5, name: 'Barley', farmer: 'Mountain View Farm', quantity: '980 kg', revenue: '₹19,600', status: 'Active' },
-  ];
-
-  const recentTransactions = [
-    { id: 1, type: 'Order', user: 'John Farmer', amount: '₹12,500', time: '5 mins ago', status: 'Completed' },
-    { id: 2, type: 'Verification', user: 'Jane Consumer', amount: '-', time: '12 mins ago', status: 'Success' },
-    { id: 3, type: 'Shipment', user: 'Mike Distributor', amount: '₹28,000', time: '25 mins ago', status: 'In Transit' },
-    { id: 4, type: 'Registration', user: 'New Farmer', amount: '-', time: '1 hour ago', status: 'Approved' },
-    { id: 5, type: 'Order', user: 'Sarah Consumer', amount: '₹8,900', time: '2 hours ago', status: 'Processing' },
-  ];
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -65,21 +39,22 @@ export default function AdminDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setStats({
-          totalUsers: 1667,
-          totalFarms: 142,
-          totalProducts: 950,
-          totalRevenue: 215000,
-          activeOrders: 48,
-          verificationRate: 94.5,
-        });
-        setRecentActivity(recentTransactions);
-        setLoading(false);
-      }, 500);
-    } catch (error) {
-      console.error('Failed to load admin dashboard data:', error);
+      setError(null);
+      const res = await api.get('/admin/stats');
+      if (res.data && res.data.success) {
+        const payload = res.data.data;
+        setStats(payload.stats);
+        setPlatformStats(payload.platformStats);
+        setUserDistribution(payload.userDistribution);
+        setPredictionDataSources(payload.predictionDataSources);
+        setTopProducts(payload.topProducts);
+        setRecentActivity(payload.recentTransactions);
+      } else {
+        throw new Error(res.data?.message || 'Failed to load dashboard stats');
+      }
+    } catch (err: any) {
+      console.error('Failed to load admin dashboard data:', err);
+      setError(err.message || 'Failed to load admin stats. Please verify the backend server.');
     } finally {
       setLoading(false);
     }
@@ -108,17 +83,31 @@ export default function AdminDashboard() {
 
   const user = { firstName: 'Admin', lastName: 'User', role: 'ADMIN' };
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="text-center p-8 max-w-md bg-white rounded-3xl shadow-xl">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Admin Stats</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-md"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600 text-lg">Loading admin dashboard...</p>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -233,30 +222,65 @@ export default function AdminDashboard() {
           </motion.div>
         </div>
 
-        {/* Revenue Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white rounded-2xl p-6 shadow-lg mb-8"
-        >
-          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <DollarSign className="h-6 w-6 text-green-600" />
-            Revenue & Products Trend
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={platformStats}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis yAxisId="left" />
-              <YAxis yAxisId="right" orientation="right" />
-              <RechartsTooltip />
-              <Legend />
-              <Bar yAxisId="left" dataKey="revenue" fill="#16a34a" name="Revenue (₹)" />
-              <Bar yAxisId="right" dataKey="products" fill="#f59e0b" name="Products" />
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Revenue Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white rounded-2xl p-6 shadow-lg lg:col-span-2"
+          >
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <DollarSign className="h-6 w-6 text-green-600" />
+              Revenue & Products Trend
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={platformStats}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis yAxisId="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <RechartsTooltip />
+                <Legend />
+                <Bar yAxisId="left" dataKey="revenue" fill="#16a34a" name="Revenue (₹)" />
+                <Bar yAxisId="right" dataKey="products" fill="#f59e0b" name="Products" />
+              </BarChart>
+            </ResponsiveContainer>
+          </motion.div>
+
+          {/* Yield Prediction Provenance Data Source Distribution */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            className="bg-white rounded-2xl p-6 shadow-lg"
+          >
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <PieChart className="h-6 w-6 text-indigo-600" />
+              Prediction Data Sources
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <RechartsPie>
+                <Pie
+                  data={predictionDataSources}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {predictionDataSources.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip formatter={(value, name, props) => [value, props.payload.name]} />
+                <Legend layout="horizontal" align="center" verticalAlign="bottom" wrapperStyle={{ fontSize: '10px' }} />
+              </RechartsPie>
+            </ResponsiveContainer>
+          </motion.div>
+        </div>
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../database/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { blockchainService } from '../services/blockchain.service';
 
 /**
  * Create order from cart
@@ -9,65 +10,81 @@ import { AuthRequest } from '../middleware/auth';
 export const createOrder = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { shippingAddress } = req.body;
+    const { shippingAddress, productId, quantity } = req.body;
 
     if (!shippingAddress) {
       throw new AppError('Shipping address is required', 400);
     }
 
-    // Get user's cart with items
-    const cart = await prisma.cart.findUnique({
-      where: { userId },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
+    let itemsToProcess: any[] = [];
+    let cartId: string | null = null;
 
-    if (!cart || cart.items.length === 0) {
-      throw new AppError('Cart is empty', 400);
+    if (productId && quantity) {
+      // Direct buy flow
+      const product = await prisma.product.findUnique({ where: { id: productId } });
+      if (!product) throw new AppError('Product not found', 404);
+      if (product.quantity < quantity) throw new AppError(`Insufficient stock. Only ${product.quantity}kg available.`, 400);
+      
+      itemsToProcess = [{
+        productId: product.id,
+        quantity: quantity,
+        product: product
+      }];
+    } else {
+      // Cart flow
+      const cart = await prisma.cart.findUnique({
+        where: { userId },
+        include: { items: { include: { product: true } } },
+      });
+
+      if (!cart || cart.items.length === 0) {
+        throw new AppError('Cart is empty', 400);
+      }
+      cartId = cart.id;
+      itemsToProcess = cart.items;
+
+      // Check stock for all items
+      for (const item of itemsToProcess) {
+        if (item.product.quantity < item.quantity) {
+          throw new AppError(`Insufficient stock for ${item.product.name}`, 400);
+        }
+      }
     }
 
     // Calculate total price
     let totalPrice = 0;
-    for (const item of cart.items) {
-      const itemPrice = parseFloat((item.product.quantity * 0.85).toFixed(2));
+    for (const item of itemsToProcess) {
+      // Base price + 5% distributor commission
+      const itemPrice = parseFloat((item.product.price * 1.05).toFixed(2));
       totalPrice += itemPrice * item.quantity;
     }
 
-    // Create order
-    const order = await prisma.order.create({
-      data: {
-        consumerId: userId,
-        status: 'PENDING',
-        totalPrice,
-        shippingAddress,
-        items: {
-          create: cart.items.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: parseFloat((item.product.quantity * 0.85).toFixed(2)),
-          })),
+    // Create order, decrease stock, and create shipment in a transaction
+    const order = await prisma.$transaction(async (tx) => {
+      // Create the order
+      const newOrder = await tx.order.create({
+        data: {
+          consumerId: userId,
+          status: 'PENDING',
+          totalPrice,
+          shippingAddress,
+          items: {
+            create: itemsToProcess.map(item => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: parseFloat((item.product.price * 1.05).toFixed(2)),
+            })),
+          },
         },
-      },
-      include: {
-        items: {
-          include: {
-            product: {
-              include: {
-                crop: {
-                  include: {
-                    farm: {
-                      include: {
-                        user: {
-                          select: {
-                            firstName: true,
-                            lastName: true,
-                          }
-                        }
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  crop: {
+                    include: {
+                      farm: {
+                        include: { user: { select: { firstName: true, lastName: true } } }
                       }
                     }
                   }
@@ -76,48 +93,87 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
             }
           }
         }
+      });
+
+      // Decrease stock for each item
+      for (const item of itemsToProcess) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { quantity: { decrement: item.quantity } }
+        });
       }
+
+      // Create shipment record
+      await tx.shipment.create({
+        data: {
+          orderId: newOrder.id,
+          status: 'PENDING_FARMER', // Farmer must dispatch it first
+        },
+      });
+
+      // Clear cart if it was a cart flow
+      if (cartId) {
+        await tx.cartItem.deleteMany({
+          where: { cartId: cartId },
+        });
+      }
+
+      return newOrder;
     });
 
-    // Create shipment record
-    await prisma.shipment.create({
-      data: {
-        orderId: order.id,
-        status: 'ASSIGNED',
-      },
-    });
-
-    // Record supply chain event for the order
+    // Record supply chain event for the order (outside transaction since it talks to blockchain)
     for (const item of order.items) {
-      await prisma.supplyChainEvent.create({
+      const metadata = {
+        orderId: order.id,
+        quantity: item.quantity,
+        amount: item.price * item.quantity,
+      };
+
+      // Create pending event in DB
+      const scEvent = await prisma.supplyChainEvent.create({
         data: {
           productId: item.productId,
           eventType: 'SOLD',
           timestamp: new Date(),
           actorId: userId,
           location: shippingAddress,
-          metadata: JSON.stringify({
-            orderId: order.id,
-            quantity: item.quantity,
-            amount: item.price * item.quantity,
-          }),
+          metadata: JSON.stringify(metadata),
+          chainStatus: 'PENDING',
+          transactionHash: `pending-${Date.now()}-${Math.random().toString(36).substring(7)}`, // Temporary unique hash to satisfy MongoDB unique constraint
         },
       });
-    }
 
-    // Clear cart after successful order
-    await prisma.cartItem.deleteMany({
-      where: { cartId: cart.id },
-    });
+      // Fire off blockchain transaction asynchronously
+      blockchainService.recordEvent(
+        item.productId, 
+        'SOLD', 
+        metadata
+      ).then(async (result) => {
+        await prisma.supplyChainEvent.update({
+          where: { id: scEvent.id },
+          data: {
+            transactionHash: result.txHash,
+            chainStatus: result.simulated ? 'SIMULATED_FALLBACK' : 'CONFIRMED'
+          }
+        });
+      }).catch(err => {
+        console.error('Failed to anchor SOLD event to blockchain', err);
+        prisma.supplyChainEvent.update({
+          where: { id: scEvent.id },
+          data: { chainStatus: 'FAILED' }
+        }).catch(console.error);
+      });
+    }
 
     res.status(201).json({
       success: true,
       message: 'Order placed successfully',
       data: order,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Order creation error:', error);
     if (error instanceof AppError) throw error;
-    throw new AppError('Failed to create order', 500);
+    throw new AppError('Failed to create order: ' + error.message, 500);
   }
 };
 
@@ -165,11 +221,12 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
       shippingAddress: order.shippingAddress,
       createdAt: order.createdAt,
       items: order.items.map(item => ({
-        name: item.product.name,
+        productId: item.productId,
+        name: item.product?.name || 'Unknown Product',
         quantity: item.quantity,
         price: item.price,
-        farmName: `${item.product.crop.farm.user.firstName} ${item.product.crop.farm.user.lastName}'s Farm`,
-        image: getEmojiForCrop(item.product.crop.type),
+        farmName: item.product?.crop?.farm?.user ? `${item.product.crop.farm.user.firstName} ${item.product.crop.farm.user.lastName}'s Farm` : 'Unknown Farm',
+        image: getEmojiForCrop(item.product?.crop?.type || 'OTHER'),
       })),
       shipment: order.shipment ? {
         status: order.shipment.status,
@@ -259,6 +316,7 @@ export const getFarmerOrders = async (req: AuthRequest, res: Response) => {
           price: item.price,
         })),
       shipment: order.shipment ? {
+        id: order.shipment.id,
         status: order.shipment.status,
         currentLocation: order.shipment.currentLocation,
       } : null,
@@ -278,7 +336,8 @@ export const getFarmerOrders = async (req: AuthRequest, res: Response) => {
  */
 export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const { orderId, status, version } = req.body;
+    const orderId = req.params.orderId || req.body.orderId;
+    const { status, version } = req.body;
 
     if (!orderId || !status) {
       throw new AppError('Order ID and status are required', 400);
@@ -292,7 +351,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
       throw new AppError('Order not found', 404);
     }
 
-    if (existingOrder.consumerId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    if (existingOrder.consumerId !== req.user!.id && !['ADMIN', 'FARMER', 'DISTRIBUTOR'].includes(req.user!.role)) {
       throw new AppError('Unauthorized to update this order', 403);
     }
 
@@ -307,6 +366,13 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
         status,
         version: { increment: 1 } 
       },
+    });
+
+    // Sync the shipment status with the order status
+    // If the order is dispatched (ASSIGNED), the shipment becomes ASSIGNED (available for distributors)
+    await prisma.shipment.updateMany({
+      where: { orderId: order.id },
+      data: { status: status }
     });
 
     res.json({

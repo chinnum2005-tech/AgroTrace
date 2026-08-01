@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../components/Toast';
+import { authService } from '../services/authService';
+
 
 export type UserRole = 'ADMIN' | 'FARMER' | 'DISTRIBUTOR' | 'CONSUMER';
 
@@ -30,9 +32,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await authService.getMe();
-        if (response.success && response.data) {
-          setUser(response.data.user);
+        const currentUser = await authService.getMe();
+        if (currentUser) {
+          setUser(currentUser);
         }
       } catch (error) {
         console.error('Session expired');

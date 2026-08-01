@@ -1,9 +1,20 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/client"
+}
+
+generator client_backend {
+  provider = "prisma-client-js"
+  output   = "../../apps/backend/node_modules/.prisma/client"
+}
+
+generator client_local {
+  provider = "prisma-client-js"
+  output   = "./node_modules/.prisma/client"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -53,9 +64,27 @@ enum EventType {
   SOLD
 }
 
+enum PredictionStatus {
+  PENDING
+  CONFIRMED
+  SIMULATED
+  NOT_CONFIGURED
+  FAILED
+}
+
+enum TriggerSource {
+  MANUAL
+  NDVI_FUSION
+}
+
+enum PredictionType {
+  YIELD
+  CROP
+}
+
 // User model
 model User {
-  id            String    @id @default(uuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   email         String    @unique
   password      String
   firstName     String
@@ -69,31 +98,33 @@ model User {
   cart          Cart?
   orders        Order[]
   distributorShipments Shipment[] @relation("DistributorShipments")
+  chatMessages  ChatMessage[]
+  verificationLogs VerificationLog[]
   
-  @@index([email])
   @@index([role])
 }
 
 // Farm model
 model Farm {
-  id              String   @id @default(uuid())
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   description     String?
   location        Json     // { lat, lng, address }
   size            Float    // in hectares
   certification   String?  // Organic, Fair Trade, etc.
-  userId          String   @unique
+  organicCertified Boolean  @default(false)
+  userId          String   @unique @db.ObjectId
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   crops           Crop[]
+  fields          Field[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  @@index([userId])
 }
 
 // Crop model
 model Crop {
-  id              String      @id @default(uuid())
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   type            CropType
   variety         String?
@@ -103,28 +134,38 @@ model Crop {
   area            Float       // in hectares
   estimatedYield  Float?      // in kg
   actualYield     Float?
-  farmId          String
+  aiPredictedYieldKg     Float?
+  aiPredictionConfidence Float?
+  aiModelVersion         String?
+  farmId          String      @db.ObjectId
   farm            Farm        @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  fieldId         String      @db.ObjectId
+  field           Field       @relation(fields: [fieldId], references: [id], onDelete: Cascade)
   products        Product[]
   predictions     AIPrediction[]
   supplyChainEvents SupplyChainEvent[]
-  qrCode          String?     @unique
+  qrCode          String?
+  version         Int         @default(1)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   @@index([farmId])
+  @@index([fieldId])
   @@index([type])
   @@index([growthStage])
+  @@index([qrCode])
 }
 
 // Product model (packaged goods from crops)
 model Product {
-  id              String   @id @default(uuid())
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   sku             String   @unique
-  cropId          String
+  cropId          String   @db.ObjectId
   crop            Crop     @relation(fields: [cropId], references: [id], onDelete: Cascade)
   quantity        Float    // quantity in kg or units
+  price           Float    @default(0.0)
+  rating          Float    @default(5.0)
   packagingDate   DateTime
   expiryDate      DateTime?
   batchNumber     String
@@ -133,19 +174,19 @@ model Product {
   supplyChainEvents SupplyChainEvent[]
   cartItems       CartItem[]
   orderItems      OrderItem[]
+  verificationLogs VerificationLog[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([cropId])
-  @@index([sku])
   @@index([batchNumber])
   @@index([status])
 }
 
 // AI Prediction model
 model AIPrediction {
-  id            String   @id @default(uuid())
-  cropId        String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  cropId        String   @db.ObjectId
   crop          Crop     @relation(fields: [cropId], references: [id], onDelete: Cascade)
   predictedYield Float
   confidence    Float    // 0-1 confidence score
@@ -157,35 +198,35 @@ model AIPrediction {
 
 // Supply Chain Event model (blockchain reference)
 model SupplyChainEvent {
-  id              String    @id @default(uuid())
-  productId       String    // Product ID or Crop ID
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  productId       String?   @db.ObjectId
   eventType       EventType
   timestamp       DateTime
   location        String?
-  actorId         String
+  actorId         String    @db.ObjectId
   actor           User      @relation(fields: [actorId], references: [id])
-  cropId          String?
+  cropId          String?   @db.ObjectId
   crop            Crop?     @relation(fields: [cropId], references: [id], onDelete: SetNull)
   product         Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
   metadata        String?   // Additional JSON data
   transactionHash String?   @unique // Blockchain transaction hash
+  chainStatus     String?   @default("PENDING") // PENDING, CONFIRMED, FAILED
   blockNumber     Int?
   verified        Boolean   @default(false)
   createdAt       DateTime  @default(now())
 
   @@index([productId])
   @@index([eventType])
-  @@index([transactionHash])
   @@index([cropId])
 }
 
 // Audit log for compliance
 model AuditLog {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   action    String
   entity    String
-  entityId  String
-  userId    String
+  entityId  String   @db.ObjectId
+  userId    String   @db.ObjectId
   timestamp DateTime @default(now())
   details   Json?
 
@@ -196,22 +237,21 @@ model AuditLog {
 
 // Cart model for e-commerce
 model Cart {
-  id        String     @id @default(uuid())
-  userId    String     @unique
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String     @unique @db.ObjectId
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  @@index([userId])
 }
 
 // Cart Item
 model CartItem {
-  id        String   @id @default(uuid())
-  cartId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cartId    String   @db.ObjectId
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId String
+  productId String   @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity  Float
   createdAt DateTime @default(now())
@@ -224,14 +264,15 @@ model CartItem {
 
 // Order model
 model Order {
-  id              String      @id @default(uuid())
-  consumerId      String
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  consumerId      String      @db.ObjectId
   consumer        User        @relation(fields: [consumerId], references: [id])
   status          String      @default("PENDING")
   totalPrice      Float
   shippingAddress String
   items           OrderItem[]
   shipment        Shipment?
+  version         Int         @default(1)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -241,10 +282,10 @@ model Order {
 
 // Order Item
 model OrderItem {
-  id        String   @id @default(uuid())
-  orderId   String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String   @db.ObjectId
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
+  productId String   @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id])
   quantity  Float
   price     Float
@@ -257,15 +298,235 @@ model OrderItem {
 
 // Shipment tracking
 model Shipment {
-  id                String   @id @default(uuid())
-  orderId           String   @unique
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId           String   @unique @db.ObjectId
   order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  distributorId     String?
+  distributorId     String?  @db.ObjectId
   distributor       User?    @relation("DistributorShipments", fields: [distributorId], references: [id])
   status            String   @default("ASSIGNED")
   currentLocation   String?
   estimatedDelivery DateTime?
   actualDelivery    DateTime?
+  version           Int      @default(1)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+// Field model
+model Field {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  farmId         String    @db.ObjectId
+  farm           Farm      @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  name           String    @default("Default Field")
+  polygon        Json?     // GeoJSON geometry or coordinates
+  soilType       String?
+  lastSoilTestAt DateTime?
+  crops          Crop[]
+  soilReadings   SoilReading[]
+  weatherSnapshots WeatherSnapshot[]
+  cropRecommendations CropRecommendation[]
+  yieldPredictions YieldPrediction[]
+  fertilizerRecommendations FertilizerRecommendation[]
+  ndviReadings   NDVIReading[]
+  weatherSyncJobs WeatherSyncJob[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([farmId, name])
+  @@index([farmId])
+}
+
+// SoilReading model
+model SoilReading {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  fieldId    String   @db.ObjectId
+  field      Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  N          Float
+  P          Float
+  K          Float
+  pH         Float
+  moisture   Float
+  recordedAt DateTime @default(now())
+
+  @@index([fieldId])
+}
+
+// WeatherSnapshot model
+model WeatherSnapshot {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  fieldId     String   @db.ObjectId
+  field       Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  temperature Float
+  humidity    Float
+  rainfall    Float
+  source      String   // "API" or "SENSOR"
+  isForecast  Boolean  @default(false)
+  recordedAt  DateTime @default(now())
+
+  @@index([fieldId])
+}
+
+// CropRecommendation model
+model CropRecommendation {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  fieldId          String           @db.ObjectId
+  field            Field            @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  inputSnapshot    Json             // N, P, K, pH, temp, humidity, rainfall, etc.
+  recommendedCrop  String
+  alternatives     Json             // Ranked list of alternatives
+  confidence       Float
+  modelVersion     String
+  predictionHash   String
+  txHash           String?
+  metadata         Json?            // e.g. roi, modelProvenance
+  provenanceStatus PredictionStatus @default(PENDING)
+  createdAt        DateTime         @default(now())
+
+  @@index([fieldId])
+}
+
+// YieldPrediction model
+model YieldPrediction {
+  id                  String           @id @default(auto()) @map("_id") @db.ObjectId
+  fieldId             String           @db.ObjectId
+  field               Field            @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  cropType            CropType
+  predictedYield      Float
+  confidenceInterval  Json             // { lower, upper, score }
+  metadata            Json             // rmse, mae, mape
+  modelVersion        String
+  predictionHash      String
+  txHash              String?
+  provenanceStatus    PredictionStatus @default(PENDING)
+  triggeredBy         TriggerSource    @default(MANUAL)
+  sourceNdviReadingId String?          @db.ObjectId
+  sourceNdviReading   NDVIReading?     @relation("NdviYieldPredictions", fields: [sourceNdviReadingId], references: [id], onDelete: SetNull)
+  createdAt           DateTime         @default(now())
+
+  @@index([fieldId])
+}
+
+// FertilizerRecommendation model
+model FertilizerRecommendation {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  fieldId               String   @db.ObjectId
+  field                 Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  recommendedFertilizer String
+  quantity              Float    // in kg/hectare
+  timingWindow          String   // e.g. "Pre-planting", "Immediate"
+  createdAt             DateTime @default(now())
+
+  @@index([fieldId])
+}
+
+// NDVIReading model
+model NDVIReading {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  fieldId           String            @db.ObjectId
+  field             Field             @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  ndviScore         Float
+  imageSource       String
+  stressFlag        Boolean
+  provider          String            @default("sentinel-2")
+  cloudCoverPercent Float?
+  imageDate         DateTime          @default(now())
+  capturedAt        DateTime          @default(now())
+  yieldPredictions  YieldPrediction[] @relation("NdviYieldPredictions")
+
+  @@index([fieldId])
+}
+
+// ChatMessage model
+model ChatMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   // "user" or "bot"
+  content   String
+  language  String   @default("en")
+  provenance Json?   // { generationProvenance, badgeType, sources }
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// VerificationLog model
+model VerificationLog {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId       String   @db.ObjectId
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  scannedByUserId String?  @db.ObjectId
+  scannedByUser   User?    @relation(fields: [scannedByUserId], references: [id], onDelete: SetNull)
+  geolocation     Json?    // { lat, lng, address }
+  blockchainHash  String?
+  timestamp       DateTime @default(now())
+
+  @@index([productId])
+  @@index([scannedByUserId])
+}
+
+// ProvenanceRecord model to store canonical input history
+model ProvenanceRecord {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  predictionId   String         @db.ObjectId
+  predictionType PredictionType
+  inputSnapshot  Json           // Sorted canonical inputs
+  modelVersion   String
+  txHash         String?
+  blockNumber    Int?
+  confirmedAt    DateTime?
+  createdAt      DateTime       @default(now())
+
+  @@index([predictionId])
+  @@index([txHash])
+}
+
+model WeatherSyncJob {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  fieldId        String    @db.ObjectId
+  field          Field     @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  requestedRange String
+  status         String    // "PENDING", "SUCCESS", "FAILED"
+  provider       String    // "nasa-power"
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  @@index([fieldId])
+}
+
+model PriceHistory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  commodity   String
+  state       String
+  market      String
+  modalPrice  Float
+  date        DateTime
+  createdAt   DateTime @default(now())
+
+  @@unique([commodity, state, market, date])
+  @@index([commodity, state, date])
+}
+
+// ----------------------------------------------------
+// AI & Chatbot Models (Phase 0 Additions)
+// ----------------------------------------------------
+
+model CropHealthAssessment {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  farmId       String   @db.ObjectId
+  assessedAt   DateTime @default(now())
+  status       String   // "HEALTHY" | "STRESSED" | "CRITICAL"
+  ndviTrend    Json
+  cause        String?
+  confidence   Float
+  modelVersion String
+}
+
+model ChatSession {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  startedAt DateTime @default(now())
+}
+
+// ChatMessage was already defined above, but we can augment it or leave it. 
+// It exists on line 431, so I won't redefine it. I will leave ChatMessage as is.

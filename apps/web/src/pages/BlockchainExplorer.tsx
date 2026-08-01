@@ -24,6 +24,7 @@ interface BlockchainEvent {
   location: string;
   timestamp: string;
   verified: boolean;
+  chainStatus?: string;
   metadata: Record<string, any> | null;
 }
 
@@ -233,7 +234,12 @@ export default function BlockchainExplorer() {
                               <span className={`px-2 py-0.5 rounded-lg text-xs font-bold ${cfg.bg} ${cfg.color}`}>
                                 {cfg.label}
                               </span>
-                              {tx.verified ? (
+                              {tx.chainStatus === 'SIMULATED_FALLBACK' ? (
+                                <span className="flex items-center gap-1 text-xs text-orange-400 font-bold border border-orange-400/50 bg-orange-400/10 px-2 py-0.5 rounded-lg">
+                                  <AlertCircle className="w-3 h-3" />
+                                  Simulated (Local)
+                                </span>
+                              ) : tx.verified ? (
                                 <span className="flex items-center gap-1 text-xs text-green-400">
                                   <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                                   On-Chain

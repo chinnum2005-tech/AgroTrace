@@ -1,11 +1,21 @@
 import os
 import sys
 
+# Load .env file manually if exists
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(env_path):
+    with open(env_path, "r") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#") and "=" in line:
+                key, val = line.strip().split("=", 1)
+                os.environ[key.strip()] = val.strip().strip('"').strip("'")
+
 # === Block TensorFlow BEFORE any other imports (prevents DLL crash on Windows) ===
 os.environ["TRANSFORMERS_NO_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["USE_TF"] = "0"
 os.environ["USE_TORCH"] = "1"
+os.environ["LOKY_MAX_CPU_COUNT"] = "4" # Suppress joblib/loky CPU core warning
 
 class _BlockTF:
     """Prevents tensorflow from being imported at all."""
@@ -31,8 +41,12 @@ from slowapi.errors import RateLimitExceeded
 
 from models.yield_predictor import YieldPredictor
 from models.disease_predictor import DiseasePredictor
+from models.crop_advisor import CropAdvisor
+from models.fertilizer_advisor import FertilizerAdvisor
 from PIL import Image
 import io
+from services.weather_backfill import fetch_historical_weather_nasa
+from services.satellite_ndvi import fetch_satellite_ndvi
 
 app = FastAPI(
     title="AgriTrace AI Service",
@@ -71,16 +85,99 @@ predictor = YieldPredictor()
 decrypt_model_at_rest("models/disease_model.enc")
 disease_predictor = DiseasePredictor()
 
+crop_advisor = CropAdvisor()
+fertilizer_advisor = FertilizerAdvisor()
+
+
+from typing import List
 
 class PredictionRequest(BaseModel):
     cropType: str
     area: float
     rainfall: float
     soilQuality: dict
+    ndviScore: Optional[float] = None
+    ndviCapturedAt: Optional[str] = None
+    ndviProvider: Optional[str] = None
 
 
 class PredictionResponse(BaseModel):
     predictedYield: float
+    confidence: float
+    modelVersion: str
+    ndviIncluded: bool
+    dataSource: str
+    factors: Dict[str, Any]
+
+
+class CropRecommendationRequest(BaseModel):
+    N: float
+    P: float
+    K: float
+    ph: float
+    temperature: float
+    humidity: float
+    rainfall: float
+
+
+class CropRecommendationResponse(BaseModel):
+    recommendedCrop: str
+    alternatives: List[str]
+    confidence: float
+    modelVersion: str
+
+
+class FertilizerRecommendationRequest(BaseModel):
+    N: float
+    P: float
+    K: float
+    ph: float
+    cropType: str
+    growthStage: str
+
+
+class FertilizerRecommendationResponse(BaseModel):
+    recommendedFertilizer: str
+    quantity: float  # in kg/hectare
+    timingWindow: str
+
+
+class NDVIRequest(BaseModel):
+    red: float
+    nir: float
+
+
+class NDVIResponse(BaseModel):
+    ndviScore: float
+    stressFlag: bool
+
+
+class WeatherBackfillRequest(BaseModel):
+    latitude: float
+    longitude: float
+    startDate: str
+    endDate: str
+
+
+class WeatherBackfillResponse(BaseModel):
+    temperature: float
+    rainfall: float
+    humidity: float
+    source: str
+
+
+class SatelliteNDVIRequest(BaseModel):
+    latitude: float
+    longitude: float
+    date: str
+
+
+class SatelliteNDVIResponse(BaseModel):
+    ndviScore: float
+    cloudCoverPercent: Optional[float] = None
+    imageDate: str
+    provider: str
+    metadata: Dict[str, Any]
 
 
 # JWT Authentication setup
@@ -115,25 +212,14 @@ async def health_check():
 async def predict_yield(request: Request, prediction_request: PredictionRequest, current_user: dict = Depends(get_current_user)):
     """
     Predict crop yield based on various factors
-    
-    Args:
-        cropType: Type of crop (WHEAT, RICE, CORN, etc.)
-        area: Area in hectares
-        rainfall: Annual rainfall in mm
-        soilQuality: Soil quality data (pH, nitrogen, phosphorus, potassium)
-    
-    Returns:
-        Predicted yield in kg/hectare
     """
     try:
-        # Default weather data
         weather_data = {
-            "temperature": 25.0,  # Average temperature in Celsius
+            "temperature": 25.0,
             "rainfall": prediction_request.rainfall,
-            "humidity": 65.0,      # Average humidity percentage
+            "humidity": 65.0,
         }
         
-        # Extract soil data from request
         soil_data = {
             "ph_level": prediction_request.soilQuality.get("ph", 6.5),
             "nitrogen": prediction_request.soilQuality.get("nitrogen", 50.0),
@@ -141,20 +227,48 @@ async def predict_yield(request: Request, prediction_request: PredictionRequest,
             "potassium": prediction_request.soilQuality.get("potassium", 40.0),
         }
         
-        # Make prediction (using internal cache)
-        prediction = get_cached_prediction(
-            prediction_request.cropType,
-            prediction_request.area,
-            prediction_request.rainfall,
-            prediction_request.soilQuality.get("ph", 6.5)
+        pred = predictor.predict(
+            crop_type=prediction_request.cropType,
+            area=prediction_request.area,
+            planting_date=datetime.now(),
+            weather=weather_data,
+            soil=soil_data,
+            ndvi_score=prediction_request.ndviScore,
+            ndvi_provider=prediction_request.ndviProvider
         )
         
+        factors = {
+            "temperature": weather_data["temperature"],
+            "rainfall": weather_data["rainfall"],
+            "humidity": weather_data["humidity"],
+            "pH": soil_data["ph_level"],
+            "nitrogen": soil_data["nitrogen"],
+            "phosphorus": soil_data["phosphorus"],
+            "potassium": soil_data["potassium"]
+        }
+        if prediction_request.ndviScore is not None:
+            factors["ndviScore"] = prediction_request.ndviScore
+            
         return PredictionResponse(
-            predictedYield=prediction["yield"]
+            predictedYield=pred["yield"],
+            confidence=pred["confidence"],
+            modelVersion="random-forest-v1",
+            ndviIncluded=pred["ndviIncluded"],
+            dataSource=pred["dataSource"],
+            factors=factors
         )
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+
+@app.post("/predict/yield/fusion-trigger", response_model=PredictionResponse)
+@limiter.limit("10/minute")
+async def predict_yield_fusion_trigger(request: Request, prediction_request: PredictionRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Private endpoint called on satellite NDVI stress detection
+    """
+    return await predict_yield(request, prediction_request, current_user)
 
 
 # Cache prediction logic internally to save compute
@@ -219,6 +333,151 @@ async def predict_disease(request: Request, file: UploadFile = File(...), curren
         return prediction
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Disease prediction failed: {str(e)}")
+
+
+@app.post("/predict/crop", response_model=CropRecommendationResponse)
+@limiter.limit("10/minute")
+async def predict_crop(request: Request, recommendation_request: CropRecommendationRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Recommend the most suitable crop based on soil and environmental conditions
+    """
+    try:
+        rec = crop_advisor.recommend(
+            n=recommendation_request.N,
+            p=recommendation_request.P,
+            k=recommendation_request.K,
+            temp=recommendation_request.temperature,
+            humidity=recommendation_request.humidity,
+            ph=recommendation_request.ph,
+            rainfall=recommendation_request.rainfall
+        )
+        alt_names = [a["crop"].upper() for a in rec["alternativeRecommendations"] if a["crop"].upper() != rec["recommendedCrop"].upper()]
+        confidence = rec["alternativeRecommendations"][0]["confidence"] if rec["alternativeRecommendations"] else 0.90
+        
+        return CropRecommendationResponse(
+            recommendedCrop=rec["recommendedCrop"].upper(),
+            alternatives=alt_names,
+            confidence=confidence,
+            modelVersion="crop-recommendation-rf-v1"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/predict/fertilizer", response_model=FertilizerRecommendationResponse)
+@limiter.limit("10/minute")
+async def predict_fertilizer(request: Request, recommendation_request: FertilizerRecommendationRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Recommend fertilizer type and application timing based on soil nutrient status
+    """
+    try:
+        # Map growth stage to typical quantity and timing
+        growth_stage = recommendation_request.growthStage.upper()
+        if growth_stage == "PLANTED":
+            quantity = 120.0
+            timing_window = "At Planting"
+        elif growth_stage == "VEGETATIVE":
+            quantity = 150.0
+            timing_window = "Early Vegetative Stage"
+        elif growth_stage == "FLOWERING":
+            quantity = 80.0
+            timing_window = "Flowering Pre-stage"
+        else:
+            quantity = 100.0
+            timing_window = "General Top Dressing"
+            
+        rec = fertilizer_advisor.recommend(
+            temp=25.0,
+            humidity=65.0,
+            moisture=35.0,
+            soil_type="Loamy",
+            crop_type=recommendation_request.cropType,
+            n=recommendation_request.N,
+            k=recommendation_request.K,
+            p=recommendation_request.P
+        )
+        
+        return FertilizerRecommendationResponse(
+            recommendedFertilizer=rec["recommendedFertilizer"],
+            quantity=quantity,
+            timingWindow=timing_window
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/ndvi", response_model=NDVIResponse)
+@limiter.limit("20/minute")
+async def compute_ndvi(request: Request, ndvi_request: NDVIRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Calculate NDVI vegetation index and detect stress
+    """
+    denominator = ndvi_request.nir + ndvi_request.red
+    if denominator == 0:
+        raise HTTPException(status_code=400, detail="Invalid bands: Red + NIR cannot be zero.")
+    ndvi = (ndvi_request.nir - ndvi_request.red) / denominator
+    stress = ndvi < 0.3
+    return NDVIResponse(
+        ndviScore=round(ndvi, 4),
+        stressFlag=stress
+    )
+
+
+@app.post("/weather/backfill", response_model=WeatherBackfillResponse)
+@limiter.limit("10/minute")
+async def backfill_weather(request: Request, backfill_req: WeatherBackfillRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Fetch historical weather data for coordinates from NASA POWER API
+    """
+    try:
+        weather = fetch_historical_weather_nasa(
+            lat=backfill_req.latitude,
+            lon=backfill_req.longitude,
+            start_date=backfill_req.startDate,
+            end_date=backfill_req.endDate
+        )
+        return WeatherBackfillResponse(
+            temperature=weather["temperature"],
+            rainfall=weather["rainfall"],
+            humidity=weather["humidity"],
+            source=weather["source"]
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/ndvi/satellite-fetch", response_model=SatelliteNDVIResponse)
+@limiter.limit("10/minute")
+async def satellite_fetch_ndvi(request: Request, ndvi_req: SatelliteNDVIRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Fetch Sentinel-2 NDVI imagery for coordinates on specific date
+    """
+    try:
+        print(f"[DEBUG] headers: {dict(request.headers)}")
+        print(f"[DEBUG] x-disable-simulation header: {request.headers.get('x-disable-simulation')}")
+        disable_sim = request.headers.get("x-disable-simulation") == "true"
+        force_sim = request.headers.get("x-force-simulation") == "true"
+        print(f"[DEBUG] disable_sim: {disable_sim}, force_sim: {force_sim}")
+        sat_data = fetch_satellite_ndvi(
+            lat=ndvi_req.latitude,
+            lon=ndvi_req.longitude,
+            date_str=ndvi_req.date,
+            disable_simulation=disable_sim,
+            force_simulation=force_sim
+        )
+        return SatelliteNDVIResponse(
+            ndviScore=sat_data["ndviScore"],
+            cloudCoverPercent=sat_data["cloudCoverPercent"],
+            imageDate=sat_data["imageDate"],
+            provider=sat_data["provider"],
+            metadata=sat_data.get("metadata", {})
+        )
+    except ValueError as ve:
+        # Fail closed on cloud cover rejection
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        # Fail closed on configuration/API errors
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/")

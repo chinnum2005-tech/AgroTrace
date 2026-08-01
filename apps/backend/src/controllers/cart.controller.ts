@@ -76,7 +76,7 @@ export const getMyCart = async (req: AuthRequest, res: Response) => {
       id: item.id,
       productId: item.product.id,
       name: item.product.name,
-      price: parseFloat((item.product.quantity * 0.85).toFixed(2)), // Mock pricing
+      price: item.product.price,
       quantity: item.quantity,
       image: getEmojiForCrop(item.product.crop.type),
       farmName: `${item.product.crop.farm.user.firstName} ${item.product.crop.farm.user.lastName}'s Farm`,

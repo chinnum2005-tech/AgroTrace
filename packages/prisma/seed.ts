@@ -4,6 +4,10 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.ALLOW_SEED !== 'true') {
+    console.error('❌ Database seeding aborted. Seeding is locked unless ALLOW_SEED=true is set.');
+    process.exit(1);
+  }
   console.log('🌱 Seeding database...');
 
   // Create admin user
@@ -22,7 +26,7 @@ async function main() {
   });
   console.log('✅ Ensured Admin User exists');
 
-  // Create farmer user with farm and crops
+  // Create farmer user
   const farmerPassword = await bcrypt.hash('farmer123', 10);
   const farmer = await prisma.user.upsert({
     where: { email: 'farmer@farmconnect.in' },
@@ -34,65 +38,103 @@ async function main() {
       lastName: 'Farmer',
       role: 'FARMER',
       phone: '+1-555-0002',
-      farm: {
-        create: {
-          name: 'Green Valley Farm',
-          description: 'Organic vegetable and grain farm',
-          location: {
-            lat: 40.7128,
-            lng: -74.0060,
-            address: '123 Farm Road, Agricultural Valley, CA 90210',
-          },
-          size: 150.5,
-          certification: 'USDA Organic',
-          crops: {
-            create: [
-              {
-                name: 'Wheat Field A',
-                type: 'WHEAT',
-                variety: 'Hard Red Winter Wheat',
-                plantingDate: new Date('2024-03-01'),
-                expectedHarvest: new Date('2024-07-15'),
-                growthStage: 'VEGETATIVE',
-                area: 50.0,
-                estimatedYield: 2250.0,
-                qrCode: 'FARMCONNECT-WHEAT-001',
-              },
-              {
-                name: 'Corn Field B',
-                type: 'CORN',
-                variety: 'Sweet Corn Hybrid',
-                plantingDate: new Date('2024-04-01'),
-                expectedHarvest: new Date('2024-08-01'),
-                growthStage: 'PLANTED',
-                area: 35.0,
-                estimatedYield: 3150.0,
-                qrCode: 'FARMCONNECT-CORN-002',
-              },
-              {
-                name: 'Soybean Field C',
-                type: 'SOYBEANS',
-                variety: 'GMO-Free Soybeans',
-                plantingDate: new Date('2024-03-15'),
-                expectedHarvest: new Date('2024-09-01'),
-                growthStage: 'FLOWERING',
-                area: 40.0,
-                estimatedYield: 1600.0,
-                qrCode: 'FARMCONNECT-SOY-003',
-              },
-            ],
-          },
-        },
-      },
     },
-    include: {
-      farm: {
-        include: {
-          crops: true,
-        },
+  }) as any;
+
+  // Create Farm for the farmer
+  const farm = await prisma.farm.upsert({
+    where: { userId: farmer.id },
+    update: {},
+    create: {
+      name: 'Green Valley Farm',
+      description: 'Organic vegetable and grain farm',
+      location: {
+        lat: 40.7128,
+        lng: -74.0060,
+        address: '123 Farm Road, Agricultural Valley, CA 90210',
       },
+      size: 150.5,
+      certification: 'USDA Organic',
+      userId: farmer.id,
     },
   });
+
+  // Create default Field for the Farm
+  const defaultField = await prisma.field.upsert({
+    where: {
+      farmId_name: {
+        farmId: farm.id,
+        name: 'Default Field',
+      },
+    },
+    update: {},
+    create: {
+      farmId: farm.id,
+      name: 'Default Field',
+      soilType: 'Loam',
+    },
+  });
+
+  // Create Crops and link to default Field
+  const seededWheat = await prisma.crop.upsert({
+    where: { qrCode: 'FARMCONNECT-WHEAT-001' },
+    update: {},
+    create: {
+      name: 'Wheat Field A',
+      type: 'WHEAT',
+      variety: 'Hard Red Winter Wheat',
+      plantingDate: new Date('2024-03-01'),
+      expectedHarvest: new Date('2024-07-15'),
+      growthStage: 'VEGETATIVE',
+      area: 50.0,
+      estimatedYield: 2250.0,
+      qrCode: 'FARMCONNECT-WHEAT-001',
+      farmId: farm.id,
+      fieldId: defaultField.id,
+    },
+  });
+
+  const seededCorn = await prisma.crop.upsert({
+    where: { qrCode: 'FARMCONNECT-CORN-002' },
+    update: {},
+    create: {
+      name: 'Corn Field B',
+      type: 'CORN',
+      variety: 'Sweet Corn Hybrid',
+      plantingDate: new Date('2024-04-01'),
+      expectedHarvest: new Date('2024-08-01'),
+      growthStage: 'PLANTED',
+      area: 35.0,
+      estimatedYield: 3150.0,
+      qrCode: 'FARMCONNECT-CORN-002',
+      farmId: farm.id,
+      fieldId: defaultField.id,
+    },
+  });
+
+  const seededSoybean = await prisma.crop.upsert({
+    where: { qrCode: 'FARMCONNECT-SOY-003' },
+    update: {},
+    create: {
+      name: 'Soybean Field C',
+      type: 'SOYBEANS',
+      variety: 'GMO-Free Soybeans',
+      plantingDate: new Date('2024-03-15'),
+      expectedHarvest: new Date('2024-09-01'),
+      growthStage: 'FLOWERING',
+      area: 40.0,
+      estimatedYield: 1600.0,
+      qrCode: 'FARMCONNECT-SOY-003',
+      farmId: farm.id,
+      fieldId: defaultField.id,
+    },
+  });
+
+  // Attach farm and crops relations mock data to farmer for downstream references in script
+  farmer.farm = {
+    ...farm,
+    crops: [seededWheat, seededCorn, seededSoybean],
+  };
   console.log('✅ Ensured Farmer exists with Farm and Crops');
 
   // Create distributor user
@@ -153,20 +195,36 @@ async function main() {
   console.log('✅ Created AI Prediction for Wheat');
 
   // Create products from harvested crops
-  const product = await prisma.product.create({
-    data: {
-      name: 'Premium Wheat Flour - 5kg',
-      sku: 'WHEAT-FLOUR-5KG-001',
-      cropId: wheatCrop.id,
-      quantity: 1000.0, // 1000 kg
-      packagingDate: new Date('2024-07-20'),
-      expiryDate: new Date('2025-07-20'),
-      batchNumber: 'BATCH-2024-001',
-      storageLocation: 'Warehouse A, Section 3',
-      status: 'ACTIVE',
-    },
+  let product = await prisma.product.findUnique({
+    where: { sku: 'WHEAT-FLOUR-5KG-001' }
   });
-  console.log('✅ Created Product from Wheat');
+  if (!product) {
+    product = await prisma.product.create({
+      data: {
+        name: 'Premium Wheat Flour - 5kg',
+        sku: 'WHEAT-FLOUR-5KG-001',
+        cropId: wheatCrop.id,
+        quantity: 1000.0, // 1000 kg
+        price: 150.0,
+        rating: 4.8,
+        packagingDate: new Date('2024-07-20'),
+        expiryDate: new Date('2025-07-20'),
+        batchNumber: 'BATCH-2024-001',
+        storageLocation: 'Warehouse A, Section 3',
+        status: 'ACTIVE',
+      },
+    });
+    console.log('✅ Created Product from Wheat');
+  } else {
+    product = await prisma.product.update({
+      where: { sku: 'WHEAT-FLOUR-5KG-001' },
+      data: {
+        price: 150.0,
+        rating: 4.8
+      }
+    });
+    console.log('✅ Updated Product with Price/Rating from Wheat');
+  }
 
   // Create supply chain events
   const wheatEventPlanted = await prisma.supplyChainEvent.create({

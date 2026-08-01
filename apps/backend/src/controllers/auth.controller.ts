@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Response } from 'express';
+import { NextFunction, Response } from 'express';
 import prisma from '../database/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
@@ -30,7 +30,7 @@ const generateRefreshToken = (user: { id: string; email: string; role: string })
   );
 };
 
-export const register = async (req: AuthRequest, res: Response) => {
+export const register = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { email, password, firstName, lastName, role, phone }: RegisterInput = req.body;
 
@@ -94,13 +94,13 @@ export const register = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error) {
-    if (error instanceof AppError) throw error;
+    if (error instanceof AppError) return next(error);
     console.error('Registration error:', error);
-    throw new AppError('Failed to register user', 500);
+    next(new AppError('Failed to register user', 500));
   }
 };
 
-export const login = async (req: AuthRequest, res: Response) => {
+export const login = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { email, password }: LoginInput = req.body;
 
@@ -155,13 +155,13 @@ export const login = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error) {
-    if (error instanceof AppError) throw error;
+    if (error instanceof AppError) return next(error);
     console.error('Login error:', error);
-    throw new AppError('Failed to login', 500);
+    next(new AppError('Failed to login', 500));
   }
 };
 
-export const getMe = async (req: AuthRequest, res: Response) => {
+export const getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     if (!req.user) {
       throw new AppError('Not authenticated', 401);
@@ -188,13 +188,13 @@ export const getMe = async (req: AuthRequest, res: Response) => {
       data: { user },
     });
   } catch (error) {
-    if (error instanceof AppError) throw error;
+    if (error instanceof AppError) return next(error);
     console.error('Get user error:', error);
-    throw new AppError('Failed to fetch user data', 500);
+    next(new AppError('Failed to fetch user data', 500));
   }
 };
 
-export const refreshToken = async (req: AuthRequest, res: Response) => {
+export const refreshToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
 
@@ -243,11 +243,11 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
     });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
-      throw new AppError('Invalid or expired refresh token', 401);
+      return next(new AppError('Invalid or expired refresh token', 401));
     }
-    if (error instanceof AppError) throw error;
+    if (error instanceof AppError) return next(error);
     console.error('Refresh token error:', error);
-    throw new AppError('Failed to refresh token', 500);
+    next(new AppError('Failed to refresh token', 500));
   }
 };
 
@@ -265,4 +265,42 @@ export const logout = async (req: AuthRequest, res: Response) => {
     success: true,
     message: 'Logged out successfully'
   });
+};
+
+export const updateProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new AppError('Not authenticated', 401);
+    }
+
+    const { firstName, lastName, phone } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(firstName && { firstName }),
+        ...(lastName && { lastName }),
+        ...(phone !== undefined && { phone }),
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        phone: true,
+      }
+    });
+
+    res.json({
+      success: true,
+      data: { user: updatedUser },
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    if (error instanceof AppError) return next(error);
+    console.error('Update profile error:', error);
+    next(new AppError('Failed to update profile', 500));
+  }
 };

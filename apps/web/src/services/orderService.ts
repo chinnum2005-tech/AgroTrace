@@ -11,7 +11,7 @@ export const orderService = {
   createOrder: async (orderData: {
     shippingAddress: string;
   }) => {
-    const response = await api.post('/api/orders/create', orderData);
+    const response = await api.post('/api/orders', orderData);
     return response.data;
   },
 

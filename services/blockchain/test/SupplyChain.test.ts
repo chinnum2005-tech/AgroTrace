@@ -107,31 +107,31 @@ describe("SupplyChain", function () {
 
     it("Should verify event exists", async function () {
       const timestamp = await getBlockTimestamp(tx);
-      
-      const exists = await supplyChain.verifyEvent(
-        productId,
-        0,
-        timestamp,
-        owner.address
+      const receipt = await tx.wait();
+      const blockNumber = receipt.blockNumber;
+      const prevBlock = await ethers.provider.getBlock(blockNumber - 1);
+      const prevBlockHash = prevBlock ? prevBlock.hash : ethers.ZeroHash;
+      const nonce = await supplyChain.eventNonce();
+
+      const eventHash = ethers.solidityPackedKeccak256(
+        ["string", "uint8", "uint256", "address", "uint256", "bytes32", "string", "uint256"],
+        [productId, 0, timestamp, owner.address, blockNumber, prevBlockHash || ethers.ZeroHash, metadata, nonce]
       );
       
+      const exists = await supplyChain.verifyEvent(eventHash);
       expect(exists).to.be.true;
     });
 
     it("Should return false for invalid event", async function () {
-      const exists = await supplyChain.verifyEvent(
-        productId,
-        1, // Wrong event type
-        await getBlockTimestamp(tx),
-        owner.address
-      );
-      
+      const exists = await supplyChain.verifyEvent(ethers.ZeroHash);
       expect(exists).to.be.false;
     });
   });
 
   describe("Access Control", function () {
-    it("Should allow anyone to record events (permissionless)", async function () {
+    it("Should allow authorized user to record events", async function () {
+      const farmerRole = await supplyChain.FARMER_ROLE();
+      await supplyChain.grantRole(farmerRole, addr1.address);
       const supplyChainConnected = supplyChain.connect(addr1);
       
       await supplyChainConnected.recordEvent(
@@ -143,6 +143,13 @@ describe("SupplyChain", function () {
       
       const eventCount = await supplyChain.getEventCount("CROP-002");
       expect(eventCount).to.equal(1);
+    });
+
+    it("Should reject unauthorized user", async function () {
+      const supplyChainConnected = supplyChain.connect(addr2);
+      await expect(
+        supplyChainConnected.recordEvent("CROP-003", 0, location, metadata)
+      ).to.be.revertedWith("Caller does not have authorization");
     });
   });
 

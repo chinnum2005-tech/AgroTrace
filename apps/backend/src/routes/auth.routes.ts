@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, refreshToken, getMe, logout } from '../controllers/auth.controller';
+import { register, login, refreshToken, getMe, logout, updateProfile } from '../controllers/auth.controller';
 import rateLimit from 'express-rate-limit';
 import { validateRequest } from '../middleware/validator';
 import { registerSchema, loginSchema } from '../validators/schemas';
@@ -9,7 +9,7 @@ const router = Router();
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per 15 minutes
+  max: process.env.NODE_ENV === 'development' ? 1000 : 5, // 5 attempts per 15 minutes
   message: 'Too many authentication attempts, please try again later.',
 });
 
@@ -72,5 +72,6 @@ router.post('/logout', logout);
 
 // Protected routes
 router.get('/me', authenticate, getMe);
+router.put('/me', authenticate, updateProfile);
 
 export default router;

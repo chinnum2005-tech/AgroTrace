@@ -1,5 +1,19 @@
 import { useRef, useState, Fragment, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { 
+  Store, 
+  ShoppingCart, 
+  Shield, 
+  MessageCircle, 
+  Cloud, 
+  Camera, 
+  LogOut, 
+  Truck, 
+  LayoutGrid, 
+  Users, 
+  CheckCircle2,
+  Package
+} from 'lucide-react';
 
 export interface DockItem {
   id: string;
@@ -25,13 +39,13 @@ function DockIcon({ item, mouseX }: DockIconProps) {
     return val - bounds.x - bounds.width / 2;
   });
 
-  // Scale magnification — peak at 1.7x, falloff over 180px for breathing room
-  const scaleRaw = useTransform(distance, [-180, 0, 180], [1, 1.7, 1]);
-  const scale = useSpring(scaleRaw, { mass: 0.1, stiffness: 180, damping: 14 });
+  // Scale magnification — peak at 1.55x, falloff over 150px
+  const scaleRaw = useTransform(distance, [-150, 0, 150], [1, 1.55, 1]);
+  const scale = useSpring(scaleRaw, { mass: 0.1, stiffness: 200, damping: 15 });
 
   // Y lift — icon floats upward when hovered
-  const yRaw = useTransform(distance, [-180, 0, 180], [0, -18, 0]);
-  const y = useSpring(yRaw, { mass: 0.1, stiffness: 180, damping: 14 });
+  const yRaw = useTransform(distance, [-150, 0, 150], [0, -12, 0]);
+  const y = useSpring(yRaw, { mass: 0.1, stiffness: 200, damping: 15 });
 
   const [hovered, setHovered] = useState(false);
   const Icon = item.icon;
@@ -39,39 +53,45 @@ function DockIcon({ item, mouseX }: DockIconProps) {
   const gradient = item.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      style={{ scale, y }}
-      className="relative flex flex-col items-center cursor-pointer select-none"
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      onClick={item.onClick}
-      whileTap={{ scale: 0.9 }}
+      className="relative flex flex-col items-center select-none"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {/* Tooltip */}
+      {/* High-Contrast Tooltip — strictly centered directly on this specific button */}
       <motion.div
-        initial={{ opacity: 0, y: 8, scale: 0.85 }}
-        animate={hovered ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 8, scale: 0.85 }}
+        initial={{ opacity: 0, y: 6, scale: 0.9 }}
+        animate={hovered ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 6, scale: 0.9 }}
         transition={{ duration: 0.15 }}
-        className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap pointer-events-none z-50"
+        className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap pointer-events-none z-50 shadow-2xl"
         style={{
-          background: 'rgba(255,255,255,0.12)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          color: '#fff',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          background: '#090d16',
+          border: '1px solid rgba(255, 255, 255, 0.25)',
+          color: '#ffffff',
+          boxShadow: '0 12px 24px -4px rgba(0, 0, 0, 0.7), 0 6px 12px -2px rgba(0, 0, 0, 0.5)',
         }}
       >
         {item.label}
+        {/* Tooltip Arrow */}
+        <div 
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45"
+          style={{ background: '#090d16', borderBottom: '1px solid rgba(255,255,255,0.25)', borderRight: '1px solid rgba(255,255,255,0.25)' }}
+        />
       </motion.div>
 
-      {/* Icon Container */}
-      <div
-        className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
+      {/* Magnified & Floating Icon Container */}
+      <motion.div
+        onClick={item.onClick}
+        whileTap={{ scale: 0.9 }}
+        className="relative w-12 h-12 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden"
         style={{
           background: gradient,
+          scale,
+          y,
+          transformOrigin: 'bottom center',
           boxShadow: hovered
-            ? '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15)'
+            ? '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.25)'
             : '0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08)',
           transition: 'box-shadow 0.2s ease',
         }}
@@ -102,16 +122,70 @@ function DockIcon({ item, mouseX }: DockIconProps) {
             {item.badge > 99 ? '99+' : item.badge}
           </span>
         )}
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
 
-interface MacDockProps {
-  items: DockItem[];
+export function getRoleDockItems(user: any, activeId?: string): DockItem[] {
+  const role = user?.role || 'CONSUMER';
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
+  if (role === 'FARMER') {
+    return [
+      { id: 'dashboard', icon: LayoutGrid, label: 'Farm Dashboard', gradient: 'linear-gradient(135deg,#10b981,#047857)', onClick: () => window.location.href='/farmer/dashboard', active: activeId === 'dashboard' },
+      { id: 'market', icon: Store, label: 'Marketplace', gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)', onClick: () => window.location.href='/marketplace', active: activeId === 'market' },
+      { id: 'weather', icon: Cloud, label: 'Weather AI', gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', onClick: () => window.location.href='/weather', active: activeId === 'weather' },
+      { id: 'chatbot', icon: MessageCircle, label: 'AgroBot AI', gradient: 'linear-gradient(135deg,#6366f1,#4338ca)', onClick: () => window.location.href='/chatbot', active: activeId === 'chatbot' },
+      { id: 'blockchain', icon: Shield, label: 'Blockchain Explorer', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', onClick: () => window.location.href='/blockchain', active: activeId === 'blockchain' },
+      { id: 'gallery', icon: Camera, label: 'Farm Gallery', gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)', onClick: () => window.location.href='/gallery', active: activeId === 'gallery' },
+      { id: 'logout', icon: LogOut, label: 'Logout', gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)', onClick: handleLogout },
+    ];
+  }
+
+  if (role === 'DISTRIBUTOR') {
+    return [
+      { id: 'dashboard', icon: Truck, label: 'Shipments Hub', gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', onClick: () => window.location.href='/distributor/dashboard', active: activeId === 'dashboard' },
+      { id: 'market', icon: Store, label: 'Marketplace', gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)', onClick: () => window.location.href='/marketplace', active: activeId === 'market' },
+      { id: 'trace', icon: Package, label: 'Product Trace', gradient: 'linear-gradient(135deg,#f59e0b,#d97706)', onClick: () => window.location.href='/product-trace', active: activeId === 'trace' },
+      { id: 'chatbot', icon: MessageCircle, label: 'AgroBot AI', gradient: 'linear-gradient(135deg,#6366f1,#4338ca)', onClick: () => window.location.href='/chatbot', active: activeId === 'chatbot' },
+      { id: 'blockchain', icon: Shield, label: 'Blockchain Ledger', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', onClick: () => window.location.href='/blockchain', active: activeId === 'blockchain' },
+      { id: 'logout', icon: LogOut, label: 'Logout', gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)', onClick: handleLogout },
+    ];
+  }
+
+  if (role === 'ADMIN') {
+    return [
+      { id: 'dashboard', icon: LayoutGrid, label: 'Admin Dashboard', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', onClick: () => window.location.href='/admin/dashboard', active: activeId === 'dashboard' },
+      { id: 'users', icon: Users, label: 'User Directory', gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', onClick: () => window.location.href='/admin/dashboard', active: activeId === 'users' },
+      { id: 'chatbot', icon: MessageCircle, label: 'AgroBot AI', gradient: 'linear-gradient(135deg,#6366f1,#4338ca)', onClick: () => window.location.href='/chatbot', active: activeId === 'chatbot' },
+      { id: 'blockchain', icon: Shield, label: 'Blockchain Ledger', gradient: 'linear-gradient(135deg,#ec4899,#be185d)', onClick: () => window.location.href='/blockchain', active: activeId === 'blockchain' },
+      { id: 'gallery', icon: Camera, label: 'Farm Gallery', gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)', onClick: () => window.location.href='/gallery', active: activeId === 'gallery' },
+      { id: 'logout', icon: LogOut, label: 'Logout', gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)', onClick: handleLogout },
+    ];
+  }
+
+  // CONSUMER default
+  return [
+    { id: 'market', icon: Store, label: 'Marketplace', gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)', onClick: () => window.location.href='/marketplace', active: activeId === 'market' },
+    { id: 'orders', icon: ShoppingCart, label: 'My Cart & Orders', gradient: 'linear-gradient(135deg,#f59e0b,#d97706)', onClick: () => window.location.href='/marketplace', active: activeId === 'orders' },
+    { id: 'verify', icon: CheckCircle2, label: 'Verify Harvest', gradient: 'linear-gradient(135deg,#10b981,#047857)', onClick: () => window.location.href='/verify', active: activeId === 'verify' },
+    { id: 'chatbot', icon: MessageCircle, label: 'AgroBot AI', gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', onClick: () => window.location.href='/chatbot', active: activeId === 'chatbot' },
+    { id: 'blockchain', icon: Shield, label: 'Blockchain Provenance', gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', onClick: () => window.location.href='/blockchain', active: activeId === 'blockchain' },
+    { id: 'gallery', icon: Camera, label: 'Farm Gallery', gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)', onClick: () => window.location.href='/gallery', active: activeId === 'gallery' },
+    { id: 'logout', icon: LogOut, label: 'Logout', gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)', onClick: handleLogout },
+  ];
 }
 
-export default function MacDock({ items }: MacDockProps) {
+interface MacDockProps {
+  items?: DockItem[];
+  activeId?: string;
+}
+
+export default function MacDock({ items, activeId }: MacDockProps) {
   const mouseX = useMotionValue(Infinity);
   const [visible, setVisible] = useState(true);
 
@@ -122,6 +196,10 @@ export default function MacDock({ items }: MacDockProps) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
+  const effectiveItems = items || getRoleDockItems(user, activeId);
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
@@ -141,10 +219,10 @@ export default function MacDock({ items }: MacDockProps) {
             '0 32px 64px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
         }}
       >
-        {items.map((item, i) => (
+        {effectiveItems.map((item, i) => (
           <Fragment key={item.id}>
-            {/* Separator before last 2 items */}
-            {i === items.length - 2 && (
+            {/* Separator before last item (Logout) */}
+            {i === effectiveItems.length - 1 && (
               <div
                 className="self-center h-8 w-px mx-1 rounded-full"
                 style={{ background: 'rgba(255,255,255,0.12)' }}

@@ -11,36 +11,52 @@ interface SearchItem {
   href: string;
   category: string;
   keywords: string[];
+  allowedRoles?: string[];
 }
 
 const searchItems: SearchItem[] = [
-  { id: '1', label: 'Farmer Dashboard', description: 'View your crops, yield and revenue', icon: Leaf, href: '/farmer/dashboard', category: 'Pages', keywords: ['farm', 'crops', 'yield', 'revenue'] },
-  { id: '2', label: 'Admin Dashboard', description: 'Platform overview and analytics', icon: BarChart3, href: '/admin/dashboard', category: 'Pages', keywords: ['admin', 'analytics', 'stats'] },
-  { id: '3', label: 'Distributor Dashboard', description: 'Manage shipments and supply chain', icon: Truck, href: '/distributor/dashboard', category: 'Pages', keywords: ['distributor', 'shipment', 'transport'] },
+  { id: '1', label: 'Farmer Dashboard', description: 'View your crops, yield and revenue', icon: Leaf, href: '/dashboard', category: 'Pages', keywords: ['farm', 'crops', 'yield', 'revenue'], allowedRoles: ['FARMER'] },
+  { id: '2', label: 'Admin Dashboard', description: 'Platform overview and analytics', icon: BarChart3, href: '/admin/dashboard', category: 'Pages', keywords: ['admin', 'analytics', 'stats'], allowedRoles: ['ADMIN'] },
+  { id: '3', label: 'Distributor Dashboard', description: 'Manage shipments and supply chain', icon: Truck, href: '/distributor/dashboard', category: 'Pages', keywords: ['distributor', 'shipment', 'transport'], allowedRoles: ['DISTRIBUTOR'] },
   { id: '4', label: 'Marketplace', description: 'Browse and buy farm products', icon: Package, href: '/marketplace', category: 'Pages', keywords: ['buy', 'shop', 'products', 'market'] },
   { id: '5', label: 'Verify Product', description: 'Scan QR code to verify authenticity', icon: QrCode, href: '/verify', category: 'Features', keywords: ['verify', 'qr', 'scan', 'authenticate'] },
   { id: '6', label: 'Supply Chain', description: 'Track products across supply chain', icon: ShieldCheck, href: '/supply-chain', category: 'Features', keywords: ['supply', 'chain', 'track', 'blockchain'] },
-  { id: '7', label: 'Admin Users', description: 'Manage platform users', icon: Users, href: '/admin/users', category: 'Admin', keywords: ['users', 'manage', 'accounts'] },
-  { id: '8', label: 'Admin Farms', description: 'View and manage all farms', icon: MapPin, href: '/admin/farms', category: 'Admin', keywords: ['farms', 'locations', 'manage'] },
-  { id: '9', label: 'Admin Products', description: 'View all products and crops', icon: Package, href: '/admin/products', category: 'Admin', keywords: ['products', 'crops', 'inventory'] },
-  { id: '10', label: 'Analytics', description: 'Platform analytics and reports', icon: BarChart3, href: '/admin/analytics', category: 'Admin', keywords: ['analytics', 'reports', 'charts', 'data'] },
+  { id: '7', label: 'Admin Users', description: 'Manage platform users', icon: Users, href: '/admin/users', category: 'Admin', keywords: ['users', 'manage', 'accounts'], allowedRoles: ['ADMIN'] },
+  { id: '8', label: 'Admin Farms', description: 'View and manage all farms', icon: MapPin, href: '/admin/farms', category: 'Admin', keywords: ['farms', 'locations', 'manage'], allowedRoles: ['ADMIN'] },
+  { id: '9', label: 'Admin Products', description: 'View all products and crops', icon: Package, href: '/admin/products', category: 'Admin', keywords: ['products', 'crops', 'inventory'], allowedRoles: ['ADMIN'] },
+  { id: '10', label: 'Analytics', description: 'Platform analytics and reports', icon: BarChart3, href: '/admin/analytics', category: 'Admin', keywords: ['analytics', 'reports', 'charts', 'data'], allowedRoles: ['ADMIN'] },
   { id: '11', label: 'AI Assistant', description: 'Ask questions about farming', icon: Bot, href: '/chatbot', category: 'Features', keywords: ['ai', 'chat', 'assistant', 'help', 'bot'] },
-  { id: '12', label: 'Disease Detection', description: 'Upload crop photo for AI diagnosis', icon: Leaf, href: '/disease-detection', category: 'AI Features', keywords: ['disease', 'detect', 'ai', 'photo', 'crop health'] },
+  { id: '12', label: 'Disease Detection', description: 'Upload crop photo for AI diagnosis', icon: Leaf, href: '/disease-detection', category: 'AI Features', keywords: ['disease', 'detect', 'ai', 'photo', 'crop health'], allowedRoles: ['FARMER', 'ADMIN'] },
   { id: '13', label: 'Blockchain Explorer', description: 'View on-chain transaction history', icon: ShieldCheck, href: '/blockchain', category: 'Blockchain', keywords: ['blockchain', 'transactions', 'explorer', 'hash'] },
-  { id: '14', label: 'My Crops', description: 'Manage your crop batches', icon: Leaf, href: '/crops', category: 'Farmer', keywords: ['crops', 'batches', 'growing'] },
-  { id: '15', label: 'My Farms', description: 'View your registered farms', icon: MapPin, href: '/farms', category: 'Farmer', keywords: ['farms', 'land', 'location'] },
+  { id: '14', label: 'My Crops', description: 'Manage your crop batches', icon: Leaf, href: '/crops', category: 'Farmer', keywords: ['crops', 'batches', 'growing'], allowedRoles: ['FARMER'] },
+  { id: '15', label: 'My Farms', description: 'View your registered farms', icon: MapPin, href: '/farms', category: 'Farmer', keywords: ['farms', 'land', 'location'], allowedRoles: ['FARMER'] },
 ];
 
 export default function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setUserRole(user.role);
+      } catch (e) {}
+    }
+  }, []);
+
+  const roleFilteredItems = searchItems.filter(item => 
+    !item.allowedRoles || (userRole && item.allowedRoles.includes(userRole))
+  );
+
   const filtered = query.trim() === ''
-    ? searchItems.slice(0, 8)
-    : searchItems.filter(item =>
+    ? roleFilteredItems.slice(0, 8)
+    : roleFilteredItems.filter(item =>
         item.label.toLowerCase().includes(query.toLowerCase()) ||
         item.description.toLowerCase().includes(query.toLowerCase()) ||
         item.keywords.some(k => k.includes(query.toLowerCase()))

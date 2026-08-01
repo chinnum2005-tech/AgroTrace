@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import { supplyChainService } from '../services/supplyChainService';
-import { MapPin } from 'lucide-react';
+import { MapPin, Play, Pause } from 'lucide-react';
 
 interface SupplyChainEvent {
   id: string;
@@ -54,10 +54,116 @@ const getEventIcon = (eventType: string) => {
   });
 };
 
+// Static memoized icon for the moving truck to prevent flicker
+const truckIcon = new L.DivIcon({
+  html: `
+    <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+      <div style="
+        position: absolute;
+        width: 36px;
+        height: 36px;
+        background-color: rgba(22, 163, 74, 0.4);
+        border-radius: 50%;
+        animation: ping-pulse 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+      "></div>
+      <div style="
+        background-color: #16a34a;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        z-index: 10;
+      ">
+        🚚
+      </div>
+    </div>
+    <style>
+      @keyframes ping-pulse {
+        0% { transform: scale(0.8); opacity: 1; }
+        100% { transform: scale(1.8); opacity: 0; }
+      }
+    </style>
+  `,
+  className: 'moving-truck-marker',
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+});
+
+// Component that manages its own RAF loop to move the marker without triggering React renders
+function AnimatedTruck({ pathCoordinates, isPlaying, speed }: { pathCoordinates: [number, number][], isPlaying: boolean, speed: number }) {
+  const markerRef = useRef<L.Marker>(null);
+  const requestRef = useRef<number>();
+  const lastTimeRef = useRef<number>();
+  
+  const stateRef = useRef({
+    currentSegment: 0,
+    progress: 0 // 0 to 1
+  });
+
+  const animate = useCallback((time: number) => {
+    if (!lastTimeRef.current) lastTimeRef.current = time;
+    const deltaTime = time - lastTimeRef.current;
+    lastTimeRef.current = time;
+
+    if (isPlaying && pathCoordinates.length > 1) {
+      const state = stateRef.current;
+      const speedFactor = 0.0004 * speed; 
+      state.progress += deltaTime * speedFactor;
+
+      if (state.progress >= 1) {
+        state.progress = 0;
+        state.currentSegment++;
+        if (state.currentSegment >= pathCoordinates.length - 1) {
+          state.currentSegment = 0; // Loop back to start
+        }
+      }
+
+      const p1 = pathCoordinates[state.currentSegment];
+      const p2 = pathCoordinates[state.currentSegment + 1];
+      
+      const lat = p1[0] + (p2[0] - p1[0]) * state.progress;
+      const lng = p1[1] + (p2[1] - p1[1]) * state.progress;
+
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      }
+    }
+    
+    requestRef.current = requestAnimationFrame(animate);
+  }, [isPlaying, pathCoordinates, speed]);
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
+  }, [animate]);
+
+  if (pathCoordinates.length < 2) return null;
+
+  return (
+    <Marker 
+      ref={markerRef} 
+      position={pathCoordinates[0]} 
+      icon={truckIcon} 
+      zIndexOffset={1000} 
+    />
+  );
+}
+
 export default function SupplyChainMap({ productId, height = '400px' }: SupplyChainMapProps) {
   const [events, setEvents] = useState<SupplyChainEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Animation state
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [speed, setSpeed] = useState(1);
 
   useEffect(() => {
     if (productId) {
@@ -74,29 +180,23 @@ export default function SupplyChainMap({ productId, height = '400px' }: SupplyCh
       if (response.success && response.data) {
         setEvents(response.data);
       } else {
-        // No data available - this is normal for demo
         setEvents([]);
       }
     } catch (err: any) {
       console.error('Error loading map:', err);
-      // Don't show error, just show empty state
       setEvents([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter events that have coordinates
   const eventsWithCoordinates = events.filter(
     (event) => event.latitude && event.longitude
   );
 
   if (loading) {
     return (
-      <div 
-        className="flex items-center justify-center bg-gray-100 rounded-xl"
-        style={{ height }}
-      >
+      <div className="flex items-center justify-center bg-gray-100 rounded-xl" style={{ height }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading map...</p>
@@ -107,10 +207,7 @@ export default function SupplyChainMap({ productId, height = '400px' }: SupplyCh
 
   if (error) {
     return (
-      <div 
-        className="flex items-center justify-center bg-red-50 rounded-xl border border-red-200"
-        style={{ height }}
-      >
+      <div className="flex items-center justify-center bg-red-50 rounded-xl border border-red-200" style={{ height }}>
         <div className="text-center text-red-600">
           <p className="font-semibold">⚠️ {error}</p>
         </div>
@@ -120,10 +217,7 @@ export default function SupplyChainMap({ productId, height = '400px' }: SupplyCh
 
   if (eventsWithCoordinates.length === 0) {
     return (
-      <div 
-        className="flex items-center justify-center bg-gray-50 rounded-xl border border-gray-200"
-        style={{ height }}
-      >
+      <div className="flex items-center justify-center bg-gray-50 rounded-xl border border-gray-200" style={{ height }}>
         <div className="text-center text-gray-500">
           <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
           <p className="font-medium">No location data available</p>
@@ -133,30 +227,30 @@ export default function SupplyChainMap({ productId, height = '400px' }: SupplyCh
     );
   }
 
-  // Calculate map center based on all markers
   const avgLat = eventsWithCoordinates.reduce((sum, e) => sum + (e.latitude || 0), 0) / eventsWithCoordinates.length;
   const avgLng = eventsWithCoordinates.reduce((sum, e) => sum + (e.longitude || 0), 0) / eventsWithCoordinates.length;
 
-  // Create path between locations
   const pathCoordinates = eventsWithCoordinates.map(e => [e.latitude || 0, e.longitude || 0] as [number, number]);
 
   return (
     <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200">
-      <div className="bg-white px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-green-600" />
-          Product Journey Map
-        </h3>
-        <p className="text-sm text-gray-600 mt-1">
-          Track the movement from farm to customer
-        </p>
+      <div className="bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-green-600" />
+            Product Journey Map
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Live simulation of movement from farm to customer
+          </p>
+        </div>
       </div>
 
       <MapContainer
         center={[avgLat, avgLng]}
         zoom={6}
         scrollWheelZoom={true}
-        className="w-full"
+        className="w-full relative z-0"
         style={{ height }}
       >
         <TileLayer
@@ -164,18 +258,25 @@ export default function SupplyChainMap({ productId, height = '400px' }: SupplyCh
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Path line connecting all locations */}
         {pathCoordinates.length > 1 && (
           <Polyline
             positions={pathCoordinates}
             color="#16a34a"
-            weight={3}
-            opacity={0.7}
+            weight={4}
+            opacity={0.6}
             dashArray="10, 10"
           />
         )}
 
-        {/* Markers for each event */}
+        {/* The animated marker component */}
+        {pathCoordinates.length > 1 && (
+          <AnimatedTruck 
+            pathCoordinates={pathCoordinates} 
+            isPlaying={isPlaying} 
+            speed={speed} 
+          />
+        )}
+
         {eventsWithCoordinates.map((event) => (
           <Marker
             key={event.id}
@@ -197,6 +298,38 @@ export default function SupplyChainMap({ productId, height = '400px' }: SupplyCh
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Animation Controls */}
+      {pathCoordinates.length > 1 && (
+        <div className="bg-slate-50 px-6 py-3 border-t border-gray-200 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm shadow-sm"
+            >
+              {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+              {isPlaying ? 'Pause Simulation' : 'Play Simulation'}
+            </button>
+            <div className="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden text-sm font-medium shadow-sm">
+              {[0.5, 1, 2, 5].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSpeed(s)}
+                  className={`px-3 py-1.5 border-r border-gray-200 last:border-r-0 transition-colors ${
+                    speed === s ? 'bg-green-100 text-green-700 font-bold' : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 font-medium px-3 py-1 bg-white rounded-full border border-gray-200 shadow-sm flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+            Simulation Active
+          </div>
+        </div>
+      )}
 
       {/* Legend */}
       <div className="bg-white px-6 py-3 border-t border-gray-200">

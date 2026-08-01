@@ -38,6 +38,19 @@ export const cropService = {
   },
 
   /**
+   * Update crop growth stage
+   */
+  updateCropEstimate: async (id: string, estimatedYield: number) => {
+    const response = await api.patch(`/crops/${id}/estimate`, { estimatedYield });
+    return response.data;
+  },
+
+  updateCrop: async (id: string, data: any) => {
+    const response = await api.patch(`/crops/${id}`, data);
+    return response.data;
+  },
+
+  /**
    * Get AI yield prediction for crop
    */
   getPrediction: async (cropId: string) => {
@@ -45,13 +58,7 @@ export const cropService = {
     return response.data;
   },
 
-  /**
-   * Update crop
-   */
-  updateCrop: async (cropId: string, cropData: any) => {
-    const response = await api.put(`/api/crops/${cropId}`, cropData);
-    return response.data;
-  },
+
 
   /**
    * Delete crop

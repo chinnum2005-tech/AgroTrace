@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+// Dynamically match the hostname in development to prevent cross-origin cookie drops
+const API_BASE_URL = import.meta.env.PROD 
+  ? import.meta.env.VITE_BACKEND_URL 
+  : `http://${window.location.hostname}:3001`;
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,

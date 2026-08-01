@@ -28,6 +28,7 @@ export const productService = {
     name: string;
     cropId: string;
     quantity: number;
+    price: number;
     batchNumber: string;
     expiryDate?: string;
     storageLocation?: string;

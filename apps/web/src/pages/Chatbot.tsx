@@ -3,18 +3,28 @@ import { motion } from 'framer-motion';
 import { Send, Bot, User, Sparkles, Store, ShoppingCart, Shield, Camera, LogOut, Cloud, MessageCircle } from 'lucide-react';
 import MacDock, { DockItem } from '../components/ui/MacDock';
 import AdminLayout from '../components/AdminLayout';
+import api from '../services/api';
+
+interface MessageSource {
+  title: string;
+  url: string;
+  date?: string;
+}
 
 interface Message {
   sender: 'user' | 'bot';
   text: string;
   timestamp: Date;
+  badgeType?: 'verified_gov' | 'verified_private' | 'unverified_mocked';
+  generationProvenance?: string;
+  sources?: MessageSource[];
 }
 
 export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'bot',
-      text: 'Hello! I\'m your Agro Assistant 🌾. Ask me about crops, equipment, weather, or farming tips!',
+      text: 'Hello! I\'m AgroBot, your AI agricultural assistant. You can ask me about government agricultural guidelines, or check your private farm data like orders and harvest status.',
       timestamp: new Date()
     }
   ]);
@@ -28,66 +38,6 @@ export default function Chatbot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const getBotReply = (text: string): string => {
-    const lowerText = text.toLowerCase();
-
-    // Crop recommendations
-    if (lowerText.includes('rice') || lowerText.includes('paddy')) {
-      return 'Rice grows best in wet conditions with temperatures between 20-35°C. For 5+ acres, consider using a rice transplanter and combine harvester. Best season: Kharif (June-July). 💧';
-    }
-    
-    if (lowerText.includes('wheat')) {
-      return 'Wheat thrives in moderate temperatures (15-25°C). For optimal yield, use seed drill machines and proper irrigation. Best season: Rabi (Oct-Nov). Planting density: 100kg seeds/acre. 🌾';
-    }
-    
-    if (lowerText.includes('corn') || lowerText.includes('maize')) {
-      return 'Maize requires well-drained soil and 500-800mm rainfall. Use ridge ploughing and consider drip irrigation. Harvest in 90-120 days. Great for both food and fodder! 🌽';
-    }
-    
-    if (lowerText.includes('cotton')) {
-      return 'Cotton needs black soil, 25-35°C temperature, and 600-800mm rainfall. Use BT cotton seeds for better yield. Harvest in 150-180 days. Watch out for pest control! 🌿';
-    }
-
-    // Equipment recommendations
-    if (lowerText.includes('tractor') || lowerText.includes('equipment')) {
-      if (lowerText.includes('small') || lowerText.includes('1') || lowerText.includes('2')) {
-        return 'For 1-2 acres: Power tiller (₹40,000-80,000), sprayer (₹3,000-8,000), and basic hand tools. Consider renting larger equipment through our platform! 🚜';
-      } else if (lowerText.includes('medium') || lowerText.includes('3') || lowerText.includes('5')) {
-        return 'For 3-5 acres: Mini tractor (25-35 HP, ₹3-5 lakhs), rotavator, cultivator, and sprayer. Check government subsidies available! 💰';
-      } else {
-        return 'For 5+ acres: Full-size tractor (45+ HP, ₹6-10 lakhs), harvester, thresher, and seeder. ROI in 2-3 years with proper utilization. Book through our platform! 🚜';
-      }
-    }
-
-    // Weather queries
-    if (lowerText.includes('weather') || lowerText.includes('rain') || lowerText.includes('monsoon')) {
-      return 'Check IMD forecasts before sowing. Monsoon typically arrives June in most regions. Install weather sensors for real-time updates. Avoid spraying pesticides before rain! ☁️';
-    }
-
-    // Pest control
-    if (lowerText.includes('pest') || lowerText.includes('disease') || lowerText.includes('insect')) {
-      return 'Integrated Pest Management (IPM) recommended: 1) Regular field inspection 2) Neem-based pesticides 3) Crop rotation 4) Beneficial insects. Contact local agricultural officer for specific advice! 🐛';
-    }
-
-    // Fertilizer
-    if (lowerText.includes('fertilizer') || lowerText.includes('nutrient')) {
-      return 'NPK ratio varies by crop. General recommendation: 100:60:40 kg/acre for cereals. Get soil tested every 2 years. Organic manure improves long-term soil health! 🌱';
-    }
-
-    // Irrigation
-    if (lowerText.includes('water') || lowerText.includes('irrigation')) {
-      return 'Drip irrigation saves 40-60% water vs flood irrigation. Best for vegetables and orchards. Government provides 50-75% subsidy! Sprinkler suits field crops. 💧';
-    }
-
-    // Market prices
-    if (lowerText.includes('price') || lowerText.includes('market') || lowerText.includes('sell')) {
-      return 'Check MSP on goportal. Current market rates vary by quality and location. Consider forming FPO for better bargaining power. Our marketplace connects you directly to buyers! 💰';
-    }
-
-    // Default response
-    return 'That\'s a great question! I specialize in crop advice, equipment recommendations, weather guidance, and farming best practices. Try asking about specific crops or farm sizes! 🌾';
-  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -103,28 +53,30 @@ export default function Chatbot() {
 
     // Call real API
     try {
-      const res = await fetch('http://localhost:3001/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
-      });
-      
-      const data = await res.json();
-      
-      const botMsg: Message = {
-        sender: 'bot',
-        text: data.reply || getBotReply(input), // Fallback to local if API fails
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, botMsg]);
+      const res = await api.post('/chat', { message: input });
+      const data = res.data;
+
+      if (data.success) {
+        const botMsg: Message = {
+          sender: 'bot',
+          text: data.reply,
+          timestamp: new Date(),
+          sources: data.sources,
+          badgeType: data.badgeType,
+          generationProvenance: data.generationProvenance
+        };
+        setMessages(prev => [...prev, botMsg]);
+      } else {
+        throw new Error(data.message || 'Failed to get response');
+      }
     } catch (error) {
       console.error('API Error:', error);
-      // Fallback to local responses
       const botMsg: Message = {
         sender: 'bot',
-        text: getBotReply(input),
-        timestamp: new Date()
+        text: 'Failed to connect to the server.',
+        timestamp: new Date(),
+        badgeType: 'unverified_mocked',
+        generationProvenance: 'MOCKED'
       };
       setMessages(prev => [...prev, botMsg]);
     }
@@ -139,16 +91,6 @@ export default function Chatbot() {
 
   const isAuthenticated = !!localStorage.getItem('user');
 
-  const dockItems: DockItem[] = [
-    { id: 'market',    icon: Store,         label: 'Marketplace',               gradient: 'linear-gradient(135deg,#06b6d4,#0e7490)',  onClick: () => window.location.href='/marketplace' },
-    { id: 'orders',    icon: ShoppingCart,  label: 'My Orders',                  gradient: 'linear-gradient(135deg,#f59e0b,#d97706)',  onClick: () => window.location.href='/marketplace' },
-    { id: 'blockchain',icon: Shield,        label: 'Blockchain',                gradient: 'linear-gradient(135deg,#8b5cf6,#6d28d9)',  onClick: () => window.location.href='/blockchain' },
-    { id: 'chatbot',   icon: MessageCircle, label: 'AgroBot AI',  active: true, gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/chatbot' },
-    { id: 'weather',   icon: Cloud,         label: 'Weather AI',                gradient: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',  onClick: () => window.location.href='/weather' },
-    { id: 'gallery',   icon: Camera,        label: 'Farm Gallery',              gradient: 'linear-gradient(135deg,#0ea5e9,#0369a1)',  onClick: () => window.location.href='/gallery' },
-    { id: 'logout',    icon: LogOut,        label: 'Logout',                    gradient: 'linear-gradient(135deg,#ef4444,#b91c1c)',  onClick: () => { localStorage.removeItem('user'); window.location.href='/login'; } },
-  ];
-
   const quickQuestions = [
     'Best crop for 5 acres?',
     'Tractor price for small farm',
@@ -157,7 +99,7 @@ export default function Chatbot() {
   ];
 
   return (
-    <AdminLayout>
+    <div className="p-4 md:p-8">
       <div className={`max-w-4xl mx-auto ${isAuthenticated ? 'pb-32' : ''}`}>
         {/* Header */}
         <motion.div
@@ -209,9 +151,50 @@ export default function Chatbot() {
                     ? 'bg-blue-600 text-white rounded-br-none'
                     : 'bg-white text-gray-900 shadow-md rounded-bl-none'
                 }`}>
-                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-line">{msg.text}</p>
+                  
+                  {/* RAG Provenance Badges & Sources */}
+                  {msg.sender === 'bot' && msg.badgeType && (
+                    <div className="mt-3 space-y-2 border-t border-gray-100 pt-2">
+                      <div className="flex items-center">
+                        {msg.badgeType === 'verified_gov' && (
+                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold mr-2">
+                            <Shield className="w-3 h-3" /> Verified: Gov Ag Resource
+                          </span>
+                        )}
+                        {msg.badgeType === 'verified_private' && (
+                          <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold mr-2">
+                            <Shield className="w-3 h-3" /> Verified: Private Record
+                          </span>
+                        )}
+                        {msg.generationProvenance === 'MOCKED' && (
+                          <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-semibold">
+                            <Sparkles className="w-3 h-3" /> Unverified / MOCKED Generation
+                          </span>
+                        )}
+                      </div>
+
+                      {msg.sources && msg.sources.length > 0 && (
+                        <div className="flex flex-col gap-1 mt-2">
+                          <span className="text-xs font-medium text-gray-500">Sources:</span>
+                          {msg.sources.map((src, i) => (
+                            <a 
+                              key={i} 
+                              href={src.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                            >
+                              - {src.title} {src.date && `(${new Date(src.date).toLocaleDateString()})`}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <p className={`text-xs mt-2 ${
-                    msg.sender === 'user' ? 'text-blue-200' : 'text-gray-500'
+                    msg.sender === 'user' ? 'text-blue-200' : 'text-gray-400'
                   }`}>
                     {msg.timestamp.toLocaleTimeString([], { 
                       hour: '2-digit', 
@@ -280,7 +263,7 @@ export default function Chatbot() {
       </div>
       
       {/* macOS-style magnification dock */}
-      {isAuthenticated && <MacDock items={dockItems} />}
-    </AdminLayout>
+      {isAuthenticated && <MacDock activeId="chatbot" />}
+    </div>
   );
 }

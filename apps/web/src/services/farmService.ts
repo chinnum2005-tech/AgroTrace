@@ -14,6 +14,22 @@ export const farmService = {
   },
 
   /**
+   * Update current user's farm
+   */
+  updateMyFarm: async (farmData: any) => {
+    const response = await api.put('/api/farms/my-farm', farmData);
+    return response.data;
+  },
+
+  /**
+   * Get dashboard stats (Revenue, NDVI Timeseries, etc)
+   */
+  getMyDashboardStats: async () => {
+    const response = await api.get('/api/farms/my-stats');
+    return response.data;
+  },
+
+  /**
    * Create a new farm
    */
   createFarm: async (farmData: {

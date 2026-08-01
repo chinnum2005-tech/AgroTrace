@@ -42,6 +42,15 @@ export const updateCropStageSchema = z.object({
   growthStage: z.enum(['PLANTED', 'GERMINATION', 'VEGETATIVE', 'FLOWERING', 'FRUITING', 'MATURING', 'READY_FOR_HARVEST', 'HARVESTED']),
 });
 
+export const updateCropSchema = z.object({
+  name: z.string().min(1, 'Crop name is required').optional(),
+  type: z.enum(['WHEAT', 'RICE', 'CORN', 'SOYBEANS', 'BARLEY', 'OATS', 'CANOLA', 'SORGHUM', 'OTHER']).optional(),
+  variety: z.string().optional(),
+  plantingDate: z.string().transform((str) => new Date(str)).optional(),
+  expectedHarvest: z.string().transform((str) => new Date(str)).optional(),
+  area: z.number().positive('Area must be positive').optional(),
+});
+
 // Supply chain schemas
 export const recordEventSchema = z.object({
   productId: z.string().min(1, 'Product ID is required'),

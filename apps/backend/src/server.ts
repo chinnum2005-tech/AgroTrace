@@ -1,8 +1,9 @@
+import 'dotenv/config';
 import express, { Application } from 'express';
+import 'express-async-errors';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -21,11 +22,19 @@ import cartRoutes from './routes/cart.routes';
 import shipmentRoutes from './routes/shipment.routes';
 import supplyChainRoutes from './routes/supplyChain.routes';
 import chatRoutes from './routes/chat.routes';
+import predictionRoutes from './routes/prediction.routes';
+import fieldRoutes from './routes/field.routes';
+import ndviRoutes from './routes/ndvi.routes';
+import weatherRoutes from './routes/weather.routes';
+import recommendationRoutes from './routes/recommendation.routes';
+import adminRoutes from './routes/admin.routes';
+import marketRoutes from './routes/market.routes';
+import { startProvenanceListener } from './services/provenanceListener';
+import { startPriceSnapshotJob } from './jobs/priceSnapshot.job';
 
 // Error handling middleware
 import { errorHandler } from './middleware/errorHandler';
 
-dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3001;
@@ -79,15 +88,10 @@ app.use(cookieParser());
 // CORS configuration
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      'http://localhost:5176',
-      'http://localhost:5177',
-      'http://localhost:5178',
-      'http://localhost:3000',
-    ],
+    origin: (origin, callback) => {
+      // Allow any origin in development to support mobile network IP testing
+      callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -95,7 +99,7 @@ app.use(
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'development' ? 2000 : 100, // limit each IP to 100 requests per windowMs in production
   message: 'Too many requests from this IP, please try again later.',
 });
 
@@ -122,10 +126,22 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Welcome / root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Welcome to AgroTrace AI Backend API',
+    status: 'OK',
+    health: '/health',
+    docs: '/api-docs'
+  });
+});
+
 // API Routes (MED-006)
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/farms', farmRoutes);
 app.use('/api/v1/crops', cropRoutes);
+app.use('/api/v1/fields', fieldRoutes);
+app.use('/predict', predictionRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/orders', orderRoutes);
@@ -134,6 +150,12 @@ app.use('/api/v1/supply-chain', supplyChainRoutes);
 app.use('/api/v1/verify', verifyRoutes);
 app.use('/api/v1/qr', qrRoutes);
 app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/predict', predictionRoutes);
+app.use('/api/v1/ndvi', ndviRoutes);
+app.use('/api/v1/weather', weatherRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/recommendations', recommendationRoutes);
+app.use('/api/v1/market', marketRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -149,6 +171,12 @@ app.listen(PORT, () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
+  
+  // Start blockchain event listener
+  startProvenanceListener();
+  
+  // Start daily market price snapshot job
+  startPriceSnapshotJob();
 });
 
 export default app;

@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../database/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { blockchainService } from '../services/blockchain.service';
 
 /**
  * Get supply chain events for a product
@@ -43,6 +44,7 @@ export const getProductTraceability = async (req: AuthRequest, res: Response) =>
       actorRole: event.actor.role,
       verified: event.verified,
       transactionHash: event.transactionHash,
+      metadata: event.metadata ? JSON.parse(event.metadata) : null,
     }));
 
     res.json({
@@ -85,6 +87,8 @@ export const addSupplyChainEvent = async (req: AuthRequest, res: Response) => {
     }
 
     // Create supply chain event with optional coordinates
+    const metadataObj = metadata ? { ...metadata, latitude, longitude } : { description, latitude, longitude };
+
     const event = await prisma.supplyChainEvent.create({
       data: {
         productId,
@@ -92,8 +96,9 @@ export const addSupplyChainEvent = async (req: AuthRequest, res: Response) => {
         location: location || null,
         actorId: userId,
         timestamp: new Date(),
-        metadata: metadata ? JSON.stringify({ ...metadata, latitude, longitude }) : JSON.stringify({ description, latitude, longitude }),
-        verified: false, // Can be set to true when blockchain integration is active
+        metadata: JSON.stringify(metadataObj),
+        verified: false,
+        chainStatus: 'PENDING',
       },
       include: {
         actor: {
@@ -104,6 +109,28 @@ export const addSupplyChainEvent = async (req: AuthRequest, res: Response) => {
           }
         }
       }
+    });
+
+    // Fire off blockchain transaction asynchronously
+    blockchainService.recordEvent(
+      productId, 
+      eventType, 
+      metadataObj
+    ).then(async (result) => {
+      await prisma.supplyChainEvent.update({
+        where: { id: event.id },
+        data: {
+          transactionHash: result.txHash,
+          chainStatus: result.simulated ? 'SIMULATED_FALLBACK' : 'CONFIRMED',
+          verified: !result.simulated // only true if not simulated
+        }
+      });
+    }).catch(err => {
+      console.error('Failed to anchor custom event to blockchain', err);
+      prisma.supplyChainEvent.update({
+        where: { id: event.id },
+        data: { chainStatus: 'FAILED' }
+      }).catch(console.error);
     });
 
     res.status(201).json({
@@ -155,8 +182,8 @@ export const getRecentEvents = async (req: AuthRequest, res: Response) => {
       id: event.id,
       eventType: event.eventType,
       title: formatEventType(event.eventType),
-      productName: event.product.name,
-      farmName: event.product.crop.farm.name,
+      productName: event.product?.name || 'System Event',
+      farmName: event.product?.crop?.farm?.name || 'System',
       location: event.location || 'Unknown',
       timestamp: event.timestamp,
       actor: `${event.actor.firstName} ${event.actor.lastName}`,
@@ -233,6 +260,7 @@ export const getAllEvents = async (req: AuthRequest, res: Response) => {
       location:        event.location        || 'Unknown',
       timestamp:       event.timestamp,
       verified:        event.verified,
+      chainStatus:     event.chainStatus,
       metadata:        event.metadata ? JSON.parse(event.metadata) : null,
     }));
 

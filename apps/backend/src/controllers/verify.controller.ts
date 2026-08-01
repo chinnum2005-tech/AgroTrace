@@ -9,9 +9,40 @@ export const verifyProduct = async (req: any, res: Response) => {
   try {
     const { qrCode } = req.params;
 
-    // Find crop by QR code
-    const crop = await prisma.crop.findUnique({
-      where: { qrCode },
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(qrCode);
+    
+    // 1. First, try to find a Product directly
+    let product = null;
+    let crop = null;
+
+    if (isObjectId) {
+      product = await prisma.product.findUnique({
+        where: { id: qrCode },
+        include: { crop: true }
+      });
+    }
+
+    // 2. If no product found, look for Crop by id or qrCode
+    if (product) {
+      crop = product.crop;
+    } else {
+      crop = await prisma.crop.findFirst({
+        where: {
+          OR: [
+            { qrCode },
+            ...(isObjectId ? [{ id: qrCode }] : [])
+          ]
+        },
+      });
+    }
+
+    if (!crop) {
+      throw new AppError('Product not found or invalid QR code', 404);
+    }
+
+    // Reload crop with all necessary relations
+    const fullCrop = await prisma.crop.findUnique({
+      where: { id: crop.id },
       include: {
         farm: {
           include: { 
@@ -27,50 +58,83 @@ export const verifyProduct = async (req: any, res: Response) => {
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
-        supplyChainEvents: {
-          include: { 
-            actor: {
-              select: {
-                firstName: true,
-                lastName: true,
-                role: true,
-              }
-            }
-          },
-          orderBy: { timestamp: 'asc' },
-        },
       },
     });
 
-    if (!crop) {
-      throw new AppError('Product not found or invalid QR code', 404);
+    if (!fullCrop) {
+      throw new AppError('Crop not found', 404);
     }
+
+    // 3. Fetch all Supply Chain Events related to either the Crop OR its Products
+    const productsForCrop = await prisma.product.findMany({ where: { cropId: crop.id }, select: { id: true } });
+    const productIds = productsForCrop.map(p => p.id);
+
+    const supplyChainEvents = await prisma.supplyChainEvent.findMany({
+      where: {
+        OR: [
+          { cropId: crop.id },
+          { productId: { in: productIds } }
+        ]
+      },
+      include: { 
+        actor: {
+          select: {
+            firstName: true,
+            lastName: true,
+            role: true,
+          }
+        }
+      },
+      orderBy: { timestamp: 'asc' },
+    });
 
     res.json({
       success: true,
       data: {
         crop: {
-          id: crop.id,
-          name: crop.name,
-          type: crop.type,
-          variety: crop.variety,
-          plantingDate: crop.plantingDate,
-          growthStage: crop.growthStage,
-          estimatedYield: crop.estimatedYield,
-          actualYield: crop.actualYield,
+          id: fullCrop.id,
+          name: fullCrop.name,
+          type: fullCrop.type,
+          variety: fullCrop.variety,
+          plantingDate: fullCrop.plantingDate,
+          growthStage: fullCrop.growthStage,
+          estimatedYield: fullCrop.estimatedYield,
+          actualYield: fullCrop.actualYield,
         },
         farm: {
-          name: crop.farm.name,
-          location: crop.farm.location,
-          size: crop.farm.size,
-          certification: crop.farm.certification,
+          name: fullCrop.farm.name,
+          location: fullCrop.farm.location,
+          size: fullCrop.farm.size,
+          certification: fullCrop.farm.certification,
           farmer: {
-            firstName: crop.farm.user.firstName,
-            lastName: crop.farm.user.lastName,
+            firstName: fullCrop.farm.user.firstName,
+            lastName: fullCrop.farm.user.lastName,
           },
         },
-        predictions: crop.predictions[0] || null,
-        supplyChainEvents: crop.supplyChainEvents,
+        predictions: fullCrop.predictions[0] || null,
+        supplyChainEvents: supplyChainEvents.map(evt => {
+          let metadataObj = null;
+          try {
+            if (evt.metadata) metadataObj = JSON.parse(evt.metadata);
+          } catch (e) {}
+          
+          return {
+            id: evt.id,
+            eventType: evt.eventType,
+            title: evt.eventType.replace('_', ' '),
+            description: metadataObj?.description || '',
+            location: evt.location || 'Unknown',
+            timestamp: evt.timestamp,
+            date: evt.timestamp,
+            actor: evt.actor ? `${evt.actor.firstName} ${evt.actor.lastName}` : 'System',
+            actorRole: evt.actor ? evt.actor.role : 'System',
+            verified: evt.verified,
+            chainStatus: evt.chainStatus,
+            transactionHash: evt.transactionHash,
+            blockNumber: evt.blockNumber,
+            metadata: metadataObj,
+          };
+        }),
       },
       message: 'Product verified successfully',
     });

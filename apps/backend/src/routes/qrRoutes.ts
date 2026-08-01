@@ -26,9 +26,9 @@ router.post('/generate', authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    // Generate verification URL or plain text
+    // Ensure FRONTEND_URL is used correctly with the new trace route for the PRO traceability page
     const qrData = format === 'url' 
-      ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify/${id}`
+      ? `${process.env.FRONTEND_URL || 'http://localhost:5173'}/trace/${id}`
       : `FARMCONNECT-${id}`;
 
     // Generate QR code

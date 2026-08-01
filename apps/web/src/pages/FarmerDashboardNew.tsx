@@ -57,6 +57,8 @@ export default function FarmerDashboard() {
     loadDashboardData();
   }, []);
 
+  const [orders, setOrders] = useState<any[]>([]);
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -78,6 +80,17 @@ export default function FarmerDashboard() {
         });
       }
 
+      let fetchedOrders: any[] = [];
+      try {
+        const ordersRes = await orderService.getFarmerOrders();
+        if (ordersRes.data) {
+          fetchedOrders = ordersRes.data;
+          setOrders(fetchedOrders);
+        }
+      } catch (err) {
+        console.error('Failed to load orders', err);
+      }
+
       // Load crops
       try {
         const cropsRes = await cropService.getMyCrops();
@@ -96,12 +109,10 @@ export default function FarmerDashboard() {
       }
 
       // Calculate stats
-      setStats({
-        totalCrops: crops.length || 4,
-        totalArea: (farm?.size || 150.5),
-        estimatedYield: crops.reduce((sum, crop) => sum + (crop.estimatedYield || 0), 0),
-        totalRevenue: 0, // Can be calculated from orders
-      });
+      setStats(prev => ({
+        ...prev,
+        totalRevenue: fetchedOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0)
+      }));
 
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -147,6 +158,17 @@ export default function FarmerDashboard() {
       SORGHUM: '🌾',
     };
     return icons[type] || '🌱';
+  };
+
+  const handleDispatchOrder = async (orderId: string) => {
+    try {
+      await orderService.updateOrderStatus(orderId, 'ASSIGNED');
+      alert('Order successfully dispatched to Distributor!');
+      loadDashboardData(); // Refresh the orders
+    } catch (error) {
+      console.error('Failed to dispatch order:', error);
+      alert('Failed to dispatch order. Please try again.');
+    }
   };
 
   // Chart data
@@ -468,6 +490,75 @@ export default function FarmerDashboard() {
             ))}
           </div>
         </motion.div>
+
+        {/* Incoming Orders Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="mt-12"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <ShoppingCart className="h-6 w-6 text-blue-600" />
+              Incoming Orders
+            </h2>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            {orders.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                No incoming orders at the moment.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-700">
+                      <th className="p-4 font-semibold border-b">Order ID</th>
+                      <th className="p-4 font-semibold border-b">Date</th>
+                      <th className="p-4 font-semibold border-b">Status</th>
+                      <th className="p-4 font-semibold border-b">Amount</th>
+                      <th className="p-4 font-semibold border-b text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr key={order.id} className="border-b hover:bg-gray-50 transition-colors">
+                        <td className="p-4 font-mono text-sm">{order.id.slice(0, 8)}...</td>
+                        <td className="p-4 text-sm text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            order.status === 'ASSIGNED' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="p-4 font-medium">₹{(order.totalPrice / 100).toFixed(2)}</td>
+                        <td className="p-4 text-right">
+                          {order.status === 'PENDING' && (
+                            <button
+                              onClick={() => handleDispatchOrder(order.id)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-flex items-center gap-2"
+                            >
+                              <Package className="w-4 h-4" />
+                              Dispatch
+                            </button>
+                          )}
+                          {order.status !== 'PENDING' && (
+                            <span className="text-gray-500 text-sm italic">Dispatched</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </motion.div>
       </div>
 
       {/* macOS-style magnification dock */}
@@ -497,7 +588,11 @@ export default function FarmerDashboard() {
               
               <div className="bg-white p-6 rounded-2xl shadow-inner mb-6">
                 <QRCodeSVG
-                  value={selectedCrop.qrCode || `FARMCONNECT-${selectedCrop.id}`}
+                  value={
+                    (selectedCrop.qrCode && selectedCrop.qrCode.length < 500)
+                      ? selectedCrop.qrCode
+                      : `FARMCONNECT-${selectedCrop.id}`
+                  }
                   size={250}
                   level="H"
                   includeMargin={true}
@@ -507,7 +602,11 @@ export default function FarmerDashboard() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Crop ID:</span>
-                  <span className="font-medium">{selectedCrop.qrCode || `FARMCONNECT-${selectedCrop.id}`}</span>
+                  <span className="font-medium truncate max-w-[150px]" title={selectedCrop.qrCode || `FARMCONNECT-${selectedCrop.id}`}>
+                    {(selectedCrop.qrCode && selectedCrop.qrCode.length < 30) 
+                      ? selectedCrop.qrCode 
+                      : `FARMCONNECT-${selectedCrop.id}`}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Blockchain Hash:</span>

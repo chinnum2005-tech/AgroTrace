@@ -59,6 +59,18 @@ export const authService = {
   },
 
   /**
+   * Update user profile
+   */
+  updateProfile: async (userData: { firstName?: string; lastName?: string; phone?: string }) => {
+    const response = await api.put('/api/auth/me', userData);
+    if (response.data && response.data.success) {
+      // Update local storage with fresh user data
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
+    return response.data;
+  },
+
+  /**
    * Get current authenticated user (from local storage)
    */
   getCurrentUser: () => {

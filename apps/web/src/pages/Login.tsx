@@ -65,21 +65,7 @@ export default function Login({ onLogin }: LoginProps) {
         }
       }
     } catch (err: any) {
-      if (!isRegister && isNetworkError(err)) {
-        // Backend unreachable — try offline demo fallback
-        const demo = OFFLINE_DEMO_USERS[formData.email.toLowerCase()];
-        if (demo && demo.password === formData.password) {
-          setUsingOfflineMode(true);
-          localStorage.setItem('demoMode', 'true');
-          localStorage.setItem('user', JSON.stringify(demo.user));
-          onLogin(demo.user);
-          return;
-        }
-        setError('Cannot reach the server. Check that the backend is running on port 3001.');
-      } else {
-        // Real error (wrong password, validation, etc.) — show it as-is
-        setError(err.response?.data?.message || err.message || 'Authentication failed');
-      }
+      setError(err.response?.data?.message || err.message || 'Authentication failed. Please check if the backend is running on port 3001.');
     } finally {
       setLoading(false);
     }
@@ -97,18 +83,7 @@ export default function Login({ onLogin }: LoginProps) {
         setError(response.message || 'Login failed');
       }
     } catch (err: any) {
-      if (isNetworkError(err)) {
-        // Offline fallback
-        const demo = OFFLINE_DEMO_USERS[card.email];
-        if (demo) {
-          setUsingOfflineMode(true);
-          localStorage.setItem('demoMode', 'true');
-          localStorage.setItem('user', JSON.stringify(demo.user));
-          onLogin(demo.user);
-          return;
-        }
-      }
-      setError(err.response?.data?.message || 'Could not connect to server');
+      setError(err.response?.data?.message || 'Could not connect to the backend server. Make sure it is running on port 3001.');
     } finally {
       setLoading(false);
     }

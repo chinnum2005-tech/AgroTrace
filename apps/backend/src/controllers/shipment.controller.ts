@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../database/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { blockchainService } from '../services/blockchain.service';
 
 /**
  * Get all shipments assigned to distributor
@@ -53,9 +54,9 @@ export const getMyShipments = async (req: AuthRequest, res: Response) => {
         shippingAddress: shipment.order.shippingAddress,
         consumerName: `${shipment.order.consumer.firstName} ${shipment.order.consumer.lastName}`,
         items: shipment.order.items.map(item => ({
-          name: item.product.name,
+          name: item.product?.name || 'Unknown Product',
           quantity: item.quantity,
-          farmName: item.product.crop.farm.name,
+          farmName: item.product?.crop?.farm?.name || 'Unknown Farm',
         })),
       },
     }));
@@ -81,21 +82,51 @@ export const updateShipmentStatus = async (req: AuthRequest, res: Response) => {
     }
 
     // Validate status
-    const validStatuses = ['ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED'];
+    const validStatuses = ['PENDING_FARMER', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED'];
     if (!validStatuses.includes(status)) {
       throw new AppError('Invalid shipment status', 400);
     }
 
     // Verify ownership
     const existingShipment = await prisma.shipment.findUnique({
-      where: { id: shipmentId }
+      where: { id: shipmentId },
+      include: {
+        order: {
+          include: {
+            items: {
+              include: {
+                product: {
+                  include: { crop: { include: { farm: true } } }
+                }
+              }
+            }
+          }
+        }
+      }
     });
     
     if (!existingShipment) {
       throw new AppError('Shipment not found', 404);
     }
     
-    if (existingShipment.distributorId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    // Check permissions
+    let isAuthorized = false;
+    
+    if (req.user!.role === 'ADMIN') {
+      isAuthorized = true;
+    } else if (req.user!.role === 'DISTRIBUTOR' && existingShipment.distributorId === req.user!.id) {
+      isAuthorized = true;
+    } else if (req.user!.role === 'FARMER') {
+      // Check if the farmer owns any product in this shipment's order
+      const isFarmerProduct = existingShipment.order.items.some(
+        item => item.product.crop.farm.userId === req.user!.id
+      );
+      if (isFarmerProduct) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
       throw new AppError('Unauthorized to update this shipment', 403);
     }
 
@@ -129,18 +160,43 @@ export const updateShipmentStatus = async (req: AuthRequest, res: Response) => {
 
       if (order) {
         for (const item of order.items) {
-          await prisma.supplyChainEvent.create({
+          const metadata = {
+            orderId: order.id,
+            deliveredAt: new Date().toISOString(),
+          };
+
+          const scEvent = await prisma.supplyChainEvent.create({
             data: {
               productId: item.productId,
               eventType: 'RECEIVED',
               timestamp: new Date(),
               actorId: req.user!.id,
               location: currentLocation || order.shippingAddress,
-              metadata: JSON.stringify({
-                orderId: order.id,
-                deliveredAt: new Date().toISOString(),
-              }),
+              metadata: JSON.stringify(metadata),
+              chainStatus: 'PENDING',
+              transactionHash: `pending-recv-${Date.now()}-${Math.random().toString(36).substring(7)}`,
             },
+          });
+
+          // Fire off blockchain transaction asynchronously
+          blockchainService.recordEvent(
+            item.productId, 
+            'RECEIVED', 
+            metadata
+          ).then(async (result) => {
+            await prisma.supplyChainEvent.update({
+              where: { id: scEvent.id },
+              data: {
+                transactionHash: result.txHash,
+                chainStatus: result.simulated ? 'SIMULATED_FALLBACK' : 'CONFIRMED'
+              }
+            });
+          }).catch(err => {
+            console.error('Failed to anchor RECEIVED event to blockchain', err);
+            prisma.supplyChainEvent.update({
+              where: { id: scEvent.id },
+              data: { chainStatus: 'FAILED' }
+            }).catch(console.error);
           });
         }
       }
@@ -165,7 +221,10 @@ export const getAvailableShipments = async (req: AuthRequest, res: Response) => 
     const shipments = await prisma.shipment.findMany({
       where: {
         status: 'ASSIGNED',
-        distributorId: null, // Not yet assigned to a distributor
+        OR: [
+          { distributorId: null },
+          { distributorId: { isSet: false } }
+        ]
       },
       include: {
         order: {

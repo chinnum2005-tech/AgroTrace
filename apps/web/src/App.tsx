@@ -21,6 +21,7 @@ import DiseaseDetection from './pages/DiseaseDetection';
 import BlockchainExplorer from './pages/BlockchainExplorer';
 import FarmGallery from './pages/FarmGallery';
 import WeatherIntelligence from './pages/WeatherIntelligence';
+import Profile from './pages/Profile';
 
 // Admin Pages
 import UsersPage from './pages/admin/UsersPage';
@@ -115,6 +116,7 @@ function AppContent({
           {/* Public pages */}
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/verify" element={<Verify />} />
+          <Route path="/verify/:id" element={<Verify />} />
           <Route path="/trace/:productId" element={<ProductTracePro />} />
           <Route path="/map-demo" element={<MapDemo />} />
           <Route path="/chatbot" element={<Chatbot />} />
@@ -127,6 +129,7 @@ function AppContent({
           <Route path="/crops" element={isAuthenticated ? <Crops user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
           <Route path="/supply-chain" element={isAuthenticated ? <SupplyChain user={user!} onLogout={handleLogout} /> : <Navigate to="/login" />} />
           <Route path="/gallery" element={isAuthenticated ? <FarmGallery /> : <Navigate to="/login" />} />
+          <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
 
           {/* Protected Admin Routes */}
           <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><UsersPage /></ProtectedRoute>} />

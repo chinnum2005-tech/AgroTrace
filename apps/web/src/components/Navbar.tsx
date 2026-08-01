@@ -23,11 +23,10 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
   const isOnLoginPage = location.pathname === '/login';
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    if (token && userData) {
+    if (userData || propUser) {
       setIsLoggedIn(true);
-      setUser(propUser || JSON.parse(userData));
+      setUser(propUser || (userData ? JSON.parse(userData) : null));
     } else {
       setIsLoggedIn(false);
       setUser(null);
@@ -69,33 +68,35 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-4">
             {/* Global Search */}
             <GlobalSearch />
 
-            <Link
-              to="/disease-detection"
-              className="flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors font-medium text-sm"
-            >
-              <Microscope className="h-4 w-4" />
-              <span className="hidden lg:inline">AI Disease</span>
-            </Link>
+            {(!currentUser || currentUser?.role === 'FARMER' || currentUser?.role === 'ADMIN') && (
+              <Link
+                to="/disease-detection"
+                className="flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors font-medium text-sm whitespace-nowrap"
+              >
+                <Microscope className="flex-shrink-0 h-4 w-4" />
+                <span className="hidden xl:inline whitespace-nowrap">AI Disease</span>
+              </Link>
+            )}
 
             <Link
               to="/blockchain"
-              className="flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium text-sm"
+              className="flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium text-sm whitespace-nowrap"
             >
-              <Shield className="h-4 w-4" />
-              <span className="hidden lg:inline">Blockchain</span>
+              <Shield className="flex-shrink-0 h-4 w-4" />
+              <span className="hidden xl:inline whitespace-nowrap">Blockchain</span>
             </Link>
 
-            {isLoggedIn && (
+            {isLoggedIn && (currentUser?.role === 'FARMER' || currentUser?.role === 'ADMIN') && (
               <Link
                 to="/gallery"
-                className="flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium text-sm"
+                className="flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium text-sm whitespace-nowrap"
               >
-                <Camera className="h-4 w-4" />
-                <span className="hidden lg:inline">Gallery</span>
+                <Camera className="flex-shrink-0 h-4 w-4" />
+                <span className="hidden xl:inline whitespace-nowrap">Gallery</span>
               </Link>
             )}
 
@@ -126,7 +127,7 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
                   <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                     {currentUser?.firstName?.[0] || 'U'}
                   </div>
-                  <div className="hidden lg:block">
+                  <div className="hidden xl:block">
                     <p className="text-sm font-semibold text-gray-800 dark:text-white leading-none">
                       {currentUser?.firstName || 'User'}
                     </p>
@@ -137,13 +138,20 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
                     )}
                   </div>
                 </div>
-                 <button
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-2 rounded-xl transition-colors font-medium text-sm border border-indigo-100 dark:border-indigo-800 whitespace-nowrap"
+                >
+                  <User className="flex-shrink-0 h-4 w-4" />
+                  <span className="hidden xl:inline whitespace-nowrap">Profile</span>
+                </Link>
+                <button
                   onClick={handleLogout}
                   id="navbar-logout"
-                  className="flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-2 rounded-xl transition-colors font-medium text-sm border border-red-100 dark:border-red-800"
+                  className="flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-2 rounded-xl transition-colors font-medium text-sm border border-red-100 dark:border-red-800 whitespace-nowrap"
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span>{t('nav.logout')}</span>
+                  <LogOut className="flex-shrink-0 h-4 w-4" />
+                  <span className="hidden xl:inline whitespace-nowrap">{t('nav.logout')}</span>
                 </button>
               </div>
             ) : !isOnLoginPage ? (
@@ -158,7 +166,7 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
           </div>
 
           {/* Mobile: Dark toggle + Hamburger */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-2">
             <button
               onClick={toggleTheme}
               className="p-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
@@ -177,28 +185,35 @@ export default function Navbar({ user: propUser, onLogout: propLogout }: NavbarP
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
+          <div className="lg:hidden py-4 border-t border-gray-100 dark:border-gray-800">
             <div className="flex flex-col space-y-2 px-2">
               <GlobalSearch />
-              <Link to="/disease-detection" className="flex items-center gap-2 px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-medium" onClick={() => setIsOpen(false)}>
-                <Microscope className="h-4 w-4 text-green-600" /> AI Disease Detection
-              </Link>
+              {(!currentUser || currentUser?.role === 'FARMER' || currentUser?.role === 'ADMIN') && (
+                <Link to="/disease-detection" className="flex items-center gap-2 px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-medium" onClick={() => setIsOpen(false)}>
+                  <Microscope className="h-4 w-4 text-green-600" /> AI Disease Detection
+                </Link>
+              )}
               <Link to="/blockchain" className="flex items-center gap-2 px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-medium" onClick={() => setIsOpen(false)}>
                 <Shield className="h-4 w-4 text-purple-600" /> Blockchain Explorer
               </Link>
-              {isLoggedIn && (
+              {isLoggedIn && (currentUser?.role === 'FARMER' || currentUser?.role === 'ADMIN') && (
                 <Link to="/gallery" className="flex items-center gap-2 px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-medium" onClick={() => setIsOpen(false)}>
                   <Camera className="h-4 w-4 text-emerald-600" /> Farm Gallery
                 </Link>
               )}
               <LanguageSelector />
               {isLoggedIn ? (
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl font-medium flex items-center gap-2"
-                >
-                  <LogOut className="h-4 w-4" /> Logout ({currentUser?.firstName})
-                </button>
+                <>
+                  <Link to="/profile" className="flex items-center gap-2 px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-medium" onClick={() => setIsOpen(false)}>
+                    <User className="h-4 w-4 text-indigo-600" /> My Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl font-medium flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" /> Logout ({currentUser?.firstName})
+                  </button>
+                </>
               ) : (
                 <Link to="/login" className="bg-green-600 text-white px-4 py-2.5 rounded-xl font-medium text-center" onClick={() => setIsOpen(false)}>
                   Login

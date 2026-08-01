@@ -70,7 +70,6 @@ class DiseasePredictor:
 
         except Exception as e:
             print(f"[WARNING] Could not load real model: {e}")
-            print("[INFO] Running in simulation mode (results will be hash-based, not real).")
             self.model_loaded = False
 
     def predict(self, image_bytes: bytes):
@@ -82,69 +81,39 @@ class DiseasePredictor:
         except Exception as e:
             raise ValueError(f"Invalid image format: {e}")
 
-        predictions = []
+        if not self.model_loaded:
+            raise RuntimeError("Plant disease classification model is currently unavailable or transformers not installed.")
 
-        if self.model_loaded:
-            try:
-                import torch
-                import torch.nn.functional as F
+        try:
+            import torch
+            import torch.nn.functional as F
 
-                inputs = self._extractor(images=image, return_tensors="pt")
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            inputs = self._extractor(images=image, return_tensors="pt")
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
-                with torch.no_grad():
-                    outputs = self._torch_model(**inputs)
-                    logits = outputs.logits
-                    probs = F.softmax(logits, dim=-1)[0]
+            with torch.no_grad():
+                outputs = self._torch_model(**inputs)
+                logits = outputs.logits
+                probs = F.softmax(logits, dim=-1)[0]
 
-                # Get top 3
-                top3_probs, top3_idxs = torch.topk(probs, 3)
+            # Get top 3
+            top3_probs, top3_idxs = torch.topk(probs, 3)
 
-                for prob, idx in zip(top3_probs.tolist(), top3_idxs.tolist()):
-                    label = self._id2label.get(idx, f"Class_{idx}")
-                    predictions.append({
-                        "disease_id": label,
-                        "confidence": round(prob * 100, 1)
-                    })
+            predictions = []
+            for prob, idx in zip(top3_probs.tolist(), top3_idxs.tolist()):
+                label = self._id2label.get(idx, f"Class_{idx}")
+                predictions.append({
+                    "disease_id": label,
+                    "confidence": round(prob * 100, 1)
+                })
 
-            except Exception as e:
-                print(f"Inference error: {e}. Falling back to simulation.")
-                predictions = self._simulate_prediction(image_bytes)
-        else:
-            predictions = self._simulate_prediction(image_bytes)
+            top_result = predictions[0] if predictions else {"disease_id": "Unknown", "confidence": 0}
 
-        # Ensure we always return a top result
-        top_result = predictions[0] if predictions else {"disease_id": "Unknown", "confidence": 0}
+            return {
+                "disease_id": top_result["disease_id"],
+                "confidence": top_result["confidence"],
+                "top_3": predictions
+            }
 
-        return {
-            "disease_id": top_result["disease_id"],
-            "confidence": top_result["confidence"],
-            "top_3": predictions
-        }
-
-    def _simulate_prediction(self, image_bytes: bytes):
-        """
-        Fallback: deterministic simulation based on image hash.
-        Clearly labelled as simulation so users aren't misled.
-        """
-        img_hash = int(hashlib.md5(image_bytes).hexdigest(), 16)
-
-        idx1 = img_hash % len(self.classes)
-        idx2 = (img_hash + 7) % len(self.classes)
-        idx3 = (img_hash + 13) % len(self.classes)
-
-        if idx2 == idx1:
-            idx2 = (idx2 + 1) % len(self.classes)
-        if idx3 == idx1 or idx3 == idx2:
-            idx3 = (idx3 + 2) % len(self.classes)
-
-        conf1 = 88.0 + (img_hash % 110) / 10.0
-        rem = 100.0 - conf1
-        conf2 = rem * 0.7
-        conf3 = round(100.0 - conf1 - conf2, 1)
-
-        return [
-            {"disease_id": "SIMULATION___" + self.classes[idx1], "confidence": round(conf1, 1)},
-            {"disease_id": "SIMULATION___" + self.classes[idx2], "confidence": round(conf2, 1)},
-            {"disease_id": "SIMULATION___" + self.classes[idx3], "confidence": round(conf3, 1)},
-        ]
+        except Exception as e:
+            raise RuntimeError(f"Image classifier inference failed: {str(e)}")

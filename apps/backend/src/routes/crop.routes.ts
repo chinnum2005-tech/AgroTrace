@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllCrops, getMyCrops, createCrop, updateCropStage } from '../controllers/crop.controller';
+import { getAllCrops, getMyCrops, createCrop, updateCropStage, updateCropEstimate, updateCrop } from '../controllers/crop.controller';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
@@ -18,5 +18,11 @@ router.post('/', authorize('FARMER'), createCrop);
 
 // PATCH /api/crops/:id/stage - Update crop growth stage
 router.patch('/:id/stage', authorize('FARMER'), updateCropStage);
+
+// PATCH /api/crops/:id/estimate - Update crop estimated yield
+router.patch('/:id/estimate', authorize('FARMER'), updateCropEstimate);
+
+// PATCH /api/crops/:id - Update crop details
+router.patch('/:id', authorize('FARMER'), updateCrop);
 
 export default router;

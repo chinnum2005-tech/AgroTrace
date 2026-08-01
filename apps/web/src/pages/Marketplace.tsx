@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Leaf, Star, Truck, CheckCircle, Search, Filter, IndianRupee, Eye, X, Store, MessageCircle, Shield, Camera, LogOut } from 'lucide-react';
+import { ShoppingCart, Leaf, Star, Truck, CheckCircle, Search, Filter, IndianRupee, Eye, X, Store, MessageCircle, Shield, Camera, LogOut, Package } from 'lucide-react';
 import MacDock, { DockItem } from '../components/ui/MacDock';
 import Card from '../components/Card';
 import { productService, orderService } from '../services';
@@ -18,6 +18,7 @@ interface Product {
   location: string;
   cropType?: string;
   batchNumber?: string;
+  availableQuantity?: number;
 }
 
 export default function Marketplace() {
@@ -30,6 +31,17 @@ export default function Marketplace() {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [orderQuantity, setOrderQuantity] = useState(1);
+  const [showCart, setShowCart] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutProcessing, setCheckoutProcessing] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState({
+    cardName: 'Test User',
+    cardNumber: '4242 4242 4242 4242',
+    expiry: '12/26',
+    cvc: '123'
+  });
+  const [showMyOrdersModal, setShowMyOrdersModal] = useState(false);
+  const [myOrders, setMyOrders] = useState<any[]>([]);
 
   useEffect(() => {
     loadProducts();
@@ -65,6 +77,7 @@ export default function Marketplace() {
       certified: true,
       location: 'Kerala',
       cropType: 'RICE',
+      availableQuantity: 50,
     },
     {
       id: '2',
@@ -77,6 +90,7 @@ export default function Marketplace() {
       certified: true,
       location: 'Karnataka',
       cropType: 'OTHER',
+      availableQuantity: 20,
     },
     {
       id: '3',
@@ -89,6 +103,7 @@ export default function Marketplace() {
       certified: true,
       location: 'Himachal Pradesh',
       cropType: 'OTHER',
+      availableQuantity: 15,
     },
     {
       id: '4',
@@ -101,6 +116,7 @@ export default function Marketplace() {
       certified: false,
       location: 'Punjab',
       cropType: 'WHEAT',
+      availableQuantity: 100,
     },
     {
       id: '5',
@@ -113,6 +129,7 @@ export default function Marketplace() {
       certified: true,
       location: 'Tamil Nadu',
       cropType: 'OTHER',
+      availableQuantity: 5,
     },
     {
       id: '6',
@@ -125,6 +142,7 @@ export default function Marketplace() {
       certified: true,
       location: 'Maharashtra',
       cropType: 'OTHER',
+      availableQuantity: 10,
     },
   ];
 
@@ -145,8 +163,32 @@ export default function Marketplace() {
   };
 
   const addToCart = (product: Product) => {
-    setCart([...cart, product]);
+    // Check if already in cart
+    if (cart.find(item => item.id === product.id)) {
+      showToast(`${product.name} is already in cart`, 'error');
+      return;
+    }
+    setCart([...cart, { ...product, cartQuantity: 1 }]);
     showToast(`${product.name} added to cart!`);
+  };
+
+  const updateCartQuantity = (productId: string, delta: number) => {
+    setCart(cart.map(item => {
+      if (item.id === productId) {
+        const newQ = (item.cartQuantity || 1) + delta;
+        if (newQ < 1) return item;
+        if (item.availableQuantity !== undefined && newQ > item.availableQuantity) {
+          showToast('Demand exceeds available stock!', 'error');
+          return item;
+        }
+        return { ...item, cartQuantity: newQ };
+      }
+      return item;
+    }));
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart(cart.filter(item => item.id !== productId));
   };
 
   const handleBuyNow = async (product: Product) => {
@@ -154,30 +196,60 @@ export default function Marketplace() {
     setShowOrderModal(true);
   };
 
-  const placeOrder = async () => {
-    if (!selectedProduct) return;
+  const proceedToCheckoutFromBuyNow = () => {
+    console.log('Proceeding to checkout. Current state:', { showOrderModal, showCheckoutModal });
+    setShowOrderModal(false);
+    setShowCheckoutModal(true);
+  };
 
+  const processCheckout = async () => {
+    setCheckoutProcessing(true);
+    // Simulate mock payment processing delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
     try {
-      const orderData = {
-        productId: selectedProduct.id,
-        quantity: orderQuantity,
-        totalAmount: selectedProduct.price * orderQuantity,
-        shippingAddress: 'Default Address (Update in profile)', // Would come from user profile
-      };
-
-      const response = await orderService.createOrder(orderData);
-      
-      if (response.success) {
-        showToast('Order placed successfully!');
-        setShowOrderModal(false);
-        setOrderQuantity(1);
+      if (selectedProduct) {
+        // Single Item Checkout
+        if (selectedProduct.id.length < 10) {
+          // Mock product bypass
+          console.log('Mock product checkout successful');
+          showToast('Payment successful! Order confirmed for ' + selectedProduct.name, 'success');
+        } else {
+          const response = await orderService.createOrder({
+            productId: selectedProduct.id,
+            quantity: orderQuantity,
+            totalAmount: selectedProduct.price * 1.05 * orderQuantity,
+            shippingAddress: 'Dummy Credit Card Checkout',
+          });
+          if (!response.success) throw new Error('Order creation failed');
+          showToast('Payment successful! Order confirmed.', 'success');
+        }
         setSelectedProduct(null);
+      } else if (cart.length > 0) {
+        // Cart Checkout
+        for (const item of cart) {
+          if (item.id.length < 10) continue; // Mock product bypass
+          
+          await orderService.createOrder({
+            productId: item.id,
+            quantity: item.cartQuantity || 1,
+            totalAmount: item.price * 1.05 * (item.cartQuantity || 1),
+            shippingAddress: 'Dummy Credit Card Checkout',
+          });
+        }
+        setCart([]);
+        showToast('Payment successful! Cart orders confirmed.', 'success');
       } else {
-        showToast('Failed to place order. Please try again.', 'error');
+        throw new Error('Nothing to checkout');
       }
+      
+      setShowCheckoutModal(false);
+      setShowCart(false);
     } catch (error: any) {
-      console.error('Order error:', error);
-      showToast(error.response?.data?.message || 'Failed to place order', 'error');
+      console.error('Checkout error:', error);
+      showToast(error.response?.data?.message || 'Payment failed. Please try again.', 'error');
+    } finally {
+      setCheckoutProcessing(false);
     }
   };
 
@@ -189,18 +261,12 @@ export default function Marketplace() {
     try {
       const response = await orderService.getMyOrders();
       if (response.success && response.data) {
-        const orders = response.data;
-        if (orders.length === 0) {
-          alert('📦 No orders yet. Start shopping!');
-        } else {
-          const orderList = orders.map((o: any) => 
-            `Order #${o.id}\nProduct: ${o.productName}\nFarmer: ${o.farmerName}\nAmount: ₹${o.totalAmount}\nDate: ${new Date(o.date).toLocaleDateString()}`
-          ).join('\n\n');
-          alert(`Your Orders:\n\n${orderList}`);
-        }
+        setMyOrders(response.data);
+        setShowMyOrdersModal(true);
       }
     } catch (error) {
-      alert('Failed to load orders');
+      console.error('Failed to fetch orders:', error);
+      showToast('Failed to load orders', 'error');
     }
   };
 
@@ -244,10 +310,46 @@ export default function Marketplace() {
   );
 
   return (
-    <div className={`min-h-screen bg-background ${isAuthenticated ? 'pb-32' : ''}`}>
+    <div className="min-h-screen bg-gray-50 flex flex-col pt-16 font-sans">
+      {/* Global Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-4 right-4 z-[99999] p-4 rounded-xl flex items-center space-x-3 shadow-2xl ${
+              toast.type === 'success' 
+                ? 'bg-green-100 text-green-800 border border-green-200' 
+                : 'bg-red-100 text-red-800 border border-red-200'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-xs">!</div>
+            )}
+            <span className="font-medium">{toast.msg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className={`min-h-screen bg-background ${isAuthenticated ? 'pb-32' : ''}`}>
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary to-primary-light text-white py-16">
+      <section className="bg-gradient-to-r from-primary to-primary-light text-white py-16 relative">
+        <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-10">
+          <button 
+            onClick={() => setShowCart(true)} 
+            className="relative p-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full transition-colors"
+          >
+            <ShoppingCart className="h-6 w-6" />
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                {cart.length}
+              </span>
+            )}
+          </button>
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -320,25 +422,6 @@ export default function Marketplace() {
             </div>
           </div>
 
-          {/* Toast notification */}
-          <AnimatePresence>
-            {toast && (
-              <motion.div
-                initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                className={`fixed top-20 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl ${
-                  toast.type === 'success'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-red-600 text-white'
-                }`}
-              >
-                <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium">{toast.msg}</span>
-                <button onClick={() => setToast(null)} className="ml-2 opacity-70 hover:opacity-100"><X className="h-4 w-4" /></button>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Loading skeletons */}
@@ -389,8 +472,11 @@ export default function Marketplace() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-2xl font-bold text-primary">₹{product.price}</span>
+                          <span className="text-2xl font-bold text-primary">₹{(product.price * 1.05).toFixed(2)}</span>
                           <span className="text-sm text-gray-500 ml-1">/ {product.unit}</span>
+                          <div className="text-[10px] text-gray-400 italic leading-tight">
+                            Includes 5% distributor fee
+                          </div>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -468,30 +554,36 @@ export default function Marketplace() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity
+                  Quantity (kg) 
+                  {selectedProduct.availableQuantity !== undefined && (
+                    <span className="text-gray-500 ml-2">
+                      (Max: {selectedProduct.availableQuantity}kg)
+                    </span>
+                  )}
                 </label>
                 <input
                   type="number"
                   min="1"
+                  max={selectedProduct.availableQuantity}
                   value={orderQuantity}
-                  onChange={(e) => setOrderQuantity(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setOrderQuantity(parseFloat(e.target.value) || 1)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-700">Price per unit:</span>
+                  <span className="text-gray-700">Price per kg:</span>
                   <span className="font-semibold">₹{selectedProduct.price}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-700">Quantity:</span>
-                  <span className="font-semibold">{orderQuantity} x {selectedProduct.unit}</span>
+                  <span className="text-gray-700">Total Quantity:</span>
+                  <span className="font-semibold">{orderQuantity} kg</span>
                 </div>
                 <div className="border-t border-gray-300 my-2"></div>
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-900">Total Amount:</span>
-                  <span className="text-2xl font-bold text-primary">₹{selectedProduct.price * orderQuantity}</span>
+                <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <span className="text-gray-600">Total (incl. 5% distributor fee):</span>
+                  <span className="text-2xl font-bold text-primary">₹{(selectedProduct.price * 1.05 * orderQuantity).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -502,12 +594,273 @@ export default function Marketplace() {
               </div>
               
               <button
-                onClick={placeOrder}
-                className="w-full bg-accent hover:bg-accent-dark text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowOrderModal(false);
+                  setShowCheckoutModal(true);
+                }}
+                disabled={selectedProduct.availableQuantity != null && orderQuantity > Number(selectedProduct.availableQuantity)}
+                className={`w-full py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                  selectedProduct.availableQuantity != null && orderQuantity > Number(selectedProduct.availableQuantity)
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-accent hover:bg-accent-dark text-white'
+                } relative z-[100]`}
               >
-                <IndianRupee className="h-5 w-5" />
-                <span>Confirm Order</span>
+                {selectedProduct.availableQuantity != null && orderQuantity > Number(selectedProduct.availableQuantity) ? (
+                  <span>Demand Exceeds Available Stock</span>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-5 w-5" />
+                    <span>Proceed to Payment</span>
+                  </>
+                )}
               </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* My Orders Modal */}
+      {showMyOrdersModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl p-6 md:p-8 max-w-4xl w-full shadow-2xl max-h-[85vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-accent flex items-center gap-2">
+                <Package className="h-6 w-6" /> My Orders
+              </h3>
+              <button
+                onClick={() => setShowMyOrdersModal(false)}
+                className="text-gray-400 hover:text-gray-600 font-bold text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {myOrders.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="text-5xl mb-4">📦</div>
+                <p className="text-xl font-semibold">No orders yet</p>
+                <p>Start shopping to see your orders here!</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {myOrders.map((order) => (
+                  <div key={order.id} className="border border-gray-200 rounded-xl p-4 md:p-6 hover:border-primary/30 transition-colors bg-gray-50/50">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 pb-4 border-b border-gray-100">
+                      <div>
+                        <p className="font-bold text-gray-900 text-lg">Order #{order.id.slice(-6).toUpperCase()}</p>
+                        <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()} • ₹{order.totalPrice}</p>
+                      </div>
+                      <div className="mt-2 md:mt-0">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          order.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {order.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {order.items.map((item: any, i: number) => (
+                        <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white rounded-lg border border-gray-100">
+                          <div className="flex items-center gap-4">
+                            <div className="text-4xl bg-gray-50 p-2 rounded-lg">{item.image}</div>
+                            <div>
+                              <p className="font-bold text-gray-900">{item.name}</p>
+                              <p className="text-sm text-gray-600">{item.farmName} • {item.quantity} kg</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setShowMyOrdersModal(false);
+                              handleViewTraceability(item.productId);
+                            }}
+                            className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Traceability & Crop Status
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {order.shipment && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 flex items-start gap-3 bg-white p-4 rounded-lg">
+                        <Truck className="w-5 h-5 text-gray-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">Shipment Status: <span className="text-primary">{order.shipment.status.replace('_', ' ')}</span></p>
+                          {order.shipment.estimatedDelivery && (
+                            <p className="text-xs text-gray-500 mt-1">ETA: {new Date(order.shipment.estimatedDelivery).toLocaleDateString()}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Cart Slide-over */}
+      <AnimatePresence>
+        {showCart && (
+          <div className="fixed inset-0 z-50 flex justify-end">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50" 
+              onClick={() => setShowCart(false)}
+            />
+            <motion.div 
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="w-full max-w-md bg-white h-full shadow-2xl relative z-50 flex flex-col"
+            >
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h2 className="text-2xl font-bold flex items-center"><ShoppingCart className="mr-2" /> Your Cart</h2>
+                <button onClick={() => setShowCart(false)} className="text-gray-400 hover:text-gray-700">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                {cart.length === 0 ? (
+                  <div className="text-center text-gray-500 mt-20">
+                    <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <p>Your cart is empty.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {cart.map(item => (
+                      <div key={item.id} className="flex items-center gap-4 border border-gray-100 p-4 rounded-xl shadow-sm">
+                        <div className="text-4xl bg-gray-50 p-2 rounded-lg">{item.image}</div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900">{item.name}</h4>
+                          <p className="text-sm text-gray-500">₹{item.price} / kg</p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <button onClick={() => updateCartQuantity(item.id, -1)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold hover:bg-gray-200">-</button>
+                            <span className="font-semibold">{item.cartQuantity} kg</span>
+                            <button onClick={() => updateCartQuantity(item.id, 1)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold hover:bg-gray-200">+</button>
+                          </div>
+                        </div>
+                        <div className="text-right flex flex-col justify-between h-full">
+                          <button onClick={() => removeFromCart(item.id)} className="text-red-400 hover:text-red-600 self-end mb-4"><X className="w-5 h-5"/></button>
+                          <span className="font-bold text-primary">₹{(item.price * item.cartQuantity).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {cart.length > 0 && (
+                <div className="p-6 bg-gray-50 border-t border-gray-100">
+                  <div className="flex justify-between mb-2 text-gray-600">
+                    <span>Subtotal</span>
+                    <span>₹{cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between mb-4 text-gray-600">
+                    <span>Platform Fee (5%)</span>
+                    <span>₹{cart.reduce((sum, item) => sum + (item.price * item.cartQuantity * 0.05), 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between mb-6 text-xl font-bold">
+                    <span>Total</span>
+                    <span className="text-primary">₹{cart.reduce((sum, item) => sum + (item.price * item.cartQuantity * 1.05), 0).toFixed(2)}</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setSelectedProduct(null); // Ensure we are doing a cart checkout
+                      setShowCheckoutModal(true);
+                    }} 
+                    className="w-full py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-dark transition-colors shadow-lg"
+                  >
+                    Proceed to Checkout
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Dummy Checkout Modal */}
+      {showCheckoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm" style={{ zIndex: 9999 }}>
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden"
+          >
+            <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-6 text-white flex justify-between items-center">
+              <h3 className="text-2xl font-bold flex items-center"><Shield className="mr-2" /> Secure Checkout</h3>
+              <button onClick={() => setShowCheckoutModal(false)} className="text-gray-400 hover:text-white transition-colors"><X/></button>
+            </div>
+            
+            <div className="p-8">
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg text-blue-800 text-sm flex items-start gap-3">
+                <span className="text-xl">ℹ️</span>
+                <p>This is a test environment. Please use the pre-filled dummy credit card details to simulate a successful transaction.</p>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name on Card</label>
+                  <input type="text" value={checkoutForm.cardName} onChange={e => setCheckoutForm({...checkoutForm, cardName: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                  <input type="text" value={checkoutForm.cardNumber} onChange={e => setCheckoutForm({...checkoutForm, cardNumber: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none tracking-widest font-mono" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                    <input type="text" value={checkoutForm.expiry} onChange={e => setCheckoutForm({...checkoutForm, expiry: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="MM/YY" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">CVC</label>
+                    <input type="text" value={checkoutForm.cvc} onChange={e => setCheckoutForm({...checkoutForm, cvc: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="123" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-gray-600 font-medium">Total Amount to Pay:</span>
+                  <span className="text-3xl font-black text-gray-900">
+                    ₹{selectedProduct 
+                      ? (selectedProduct.price * 1.05 * orderQuantity).toFixed(2)
+                      : cart.reduce((sum, item) => sum + (item.price * item.cartQuantity * 1.05), 0).toFixed(2)}
+                  </span>
+                </div>
+                
+                <button
+                  onClick={processCheckout}
+                  disabled={checkoutProcessing}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex justify-center items-center gap-2 ${
+                    checkoutProcessing 
+                      ? 'bg-gray-400 text-white cursor-wait' 
+                      : 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1'
+                  }`}
+                >
+                  {checkoutProcessing ? (
+                    <>
+                      <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Processing Payment...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-6 h-6" />
+                      <span>Pay Securely</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -530,6 +883,7 @@ export default function Marketplace() {
       
       {/* macOS-style magnification dock */}
       {isAuthenticated && <MacDock items={dockItems} />}
+      </div>
     </div>
   );
 }

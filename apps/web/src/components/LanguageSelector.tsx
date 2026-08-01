@@ -37,8 +37,8 @@ export default function LanguageSelector() {
         aria-label="Select language"
       >
         <Globe className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-        <span className="text-gray-700 dark:text-gray-300 hidden sm:inline">{current.flag} {current.nativeName}</span>
-        <span className="text-gray-700 dark:text-gray-300 sm:hidden">{current.flag}</span>
+        <span className="text-gray-700 dark:text-gray-300 hidden sm:inline whitespace-nowrap">{current.flag} {current.nativeName}</span>
+        <span className="text-gray-700 dark:text-gray-300 sm:hidden whitespace-nowrap">{current.flag}</span>
       </button>
 
       <AnimatePresence>

@@ -79,16 +79,67 @@ export const createCrop = async (req: AuthRequest, res: Response) => {
       throw new AppError('User ID not found', 401);
     }
 
-    const { name, type, variety, plantingDate, expectedHarvest, area }: CreateCropInput = req.body;
+    // Crop-Specific Minimum Growing Period (Days)
+    const { name, type, variety, plantingDate, expectedHarvest, area } = req.body;
+    const minDaysMap: Record<string, number> = {
+      WHEAT: 90,
+      RICE: 90,
+      CORN: 60,
+      SOYBEANS: 75,
+      BARLEY: 60,
+      OATS: 60,
+      CANOLA: 80,
+      SORGHUM: 90,
+      OTHER: 20
+    };
+    
+    // Harvest Date Validation
+    if (expectedHarvest && new Date(expectedHarvest) <= new Date(plantingDate)) {
+      throw new AppError('Expected harvest date must be after the planting date', 400);
+    }
+    const daysBetween = expectedHarvest ? (new Date(expectedHarvest).getTime() - new Date(plantingDate).getTime()) / (1000 * 60 * 60 * 24) : null;
+    const minDays = minDaysMap[type] || 20;
+    
+    if (daysBetween !== null && daysBetween < minDays) {
+      throw new AppError(`Unrealistic harvest date: ${type} requires a minimum growing period of ${minDays} days.`, 400);
+    }
+
+    // Area is now expected to be in Hectares natively
 
     // Get farmer's farm
     const farm = await prisma.farm.findUnique({ 
       where: { userId: req.user.id },
-      select: { id: true }
+      select: { id: true, size: true }
     });
     
     if (!farm) {
       throw new AppError('No farm found for this user. Please register a farm first.', 404);
+    }
+
+    // Capacity Validation
+    const activeCrops = await prisma.crop.findMany({
+      where: {
+        farmId: farm.id,
+        growthStage: {
+          not: 'HARVESTED'
+        }
+      },
+      select: { area: true }
+    });
+
+    const currentUsedAreaHectares = activeCrops.reduce((acc, c) => acc + c.area, 0);
+    if (currentUsedAreaHectares + area > farm.size) {
+      const remainingHectares = (farm.size - currentUsedAreaHectares).toFixed(2);
+      throw new AppError(`Insufficient land area. You only have ${remainingHectares > "0" ? remainingHectares : "0"} hectares available on your farm.`, 400);
+    }
+
+    const field = await prisma.field.findFirst({
+      where: { farmId: farm.id },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    if (!field) {
+      throw new AppError('No field found. Please setup a Field on the dashboard first.', 400);
     }
 
     const crop = await prisma.crop.create({
@@ -100,6 +151,7 @@ export const createCrop = async (req: AuthRequest, res: Response) => {
         expectedHarvest,
         area,
         farmId: farm.id,
+        fieldId: field.id,
       },
     });
 
@@ -159,5 +211,120 @@ export const updateCropStage = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     if (error instanceof AppError) throw error;
     throw new AppError('Failed to update crop stage', 500);
+  }
+};
+
+// Update crop estimated yield
+export const updateCropEstimate = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      throw new AppError('User ID not found', 401);
+    }
+
+    const { id } = req.params;
+    const { estimatedYield } = req.body;
+
+    const crop = await prisma.crop.findUnique({ 
+      where: { id },
+      include: { farm: true }
+    });
+    
+    if (!crop) {
+      throw new AppError('Crop not found', 404);
+    }
+
+    if (crop.farm.userId !== req.user.id) {
+      throw new AppError('Unauthorized to update this crop', 403);
+    }
+
+    const updatedCrop = await prisma.crop.update({
+      where: { id },
+      data: { estimatedYield },
+    });
+
+    res.json({ 
+      success: true, 
+      data: updatedCrop,
+      message: `Crop estimated yield updated`
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError('Failed to update crop estimate', 500);
+  }
+};
+
+// Update crop details
+export const updateCrop = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      throw new AppError('User ID not found', 401);
+    }
+
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const crop = await prisma.crop.findUnique({ 
+      where: { id },
+      include: { 
+        farm: true,
+        predictions: { take: 1 } 
+      }
+    });
+    
+    if (!crop) {
+      throw new AppError('Crop not found', 404);
+    }
+
+    if (crop.farm.userId !== req.user.id) {
+      throw new AppError('Unauthorized to update this crop', 403);
+    }
+
+    if (crop.predictions && crop.predictions.length > 0) {
+      throw new AppError('Cannot edit crop: A yield prediction is already anchored on the blockchain for this crop.', 403);
+    }
+
+    // Harvest Date Validation for Updates
+    const newPlantingDate = updateData.plantingDate ? new Date(updateData.plantingDate) : crop.plantingDate;
+    const newHarvestDate = updateData.expectedHarvest ? new Date(updateData.expectedHarvest) : crop.expectedHarvest;
+    
+    // Crop-Specific Minimum Growing Period (Days)
+    const minDaysMap: Record<string, number> = {
+      WHEAT: 90,
+      RICE: 90,
+      CORN: 60,
+      SOYBEANS: 75,
+      BARLEY: 60,
+      OATS: 60,
+      CANOLA: 80,
+      SORGHUM: 90,
+      OTHER: 20
+    };
+    
+    if (newHarvestDate && newHarvestDate <= newPlantingDate) {
+      throw new AppError('Expected harvest date must be after the planting date', 400);
+    }
+    const daysBetween = newHarvestDate ? (newHarvestDate.getTime() - newPlantingDate.getTime()) / (1000 * 60 * 60 * 24) : null;
+    const currentType = updateData.type || crop.type;
+    const minDays = minDaysMap[currentType] || 20;
+
+    if (daysBetween !== null && daysBetween < minDays) {
+      throw new AppError(`Unrealistic harvest date: ${currentType} requires a minimum growing period of ${minDays} days.`, 400);
+    }
+
+    // Area is now expected to be in Hectares natively
+
+    const updatedCrop = await prisma.crop.update({
+      where: { id },
+      data: updateData,
+    });
+
+    res.json({ 
+      success: true, 
+      data: updatedCrop,
+      message: `Crop updated successfully`
+    });
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError('Failed to update crop details', 500);
   }
 };

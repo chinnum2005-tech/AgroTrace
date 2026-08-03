@@ -9,8 +9,13 @@ const router = Router();
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 5, // 5 attempts per 15 minutes
-  message: 'Too many authentication attempts, please try again later.',
+  max: 200, // 200 attempts per 15 minutes (ensures smooth demo & multi-user testing)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many authentication attempts, please try again later.',
+  },
 });
 
 /**

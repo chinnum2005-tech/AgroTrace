@@ -39,75 +39,71 @@ import { errorHandler } from './middleware/errorHandler';
 const app: Application = express();
 const PORT = process.env.PORT || 3001;
 
-// Swagger definition
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'FarmConnect AI API',
-      version: '1.0.0',
-      description: 'API documentation for FarmConnect AI platform',
-    },
-    servers: [
-      {
-        url: `http://localhost:${PORT}/api/v1`,
-        description: 'Development server',
-      },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
+// Trust reverse proxy (Render load balancer)
+app.set('trust proxy', 1);
+
+// CORS configuration (MUST be first before other middleware)
+const allowedOrigins = [
+  'https://agrotrace-web.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
+].filter(Boolean) as string[];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.onrender.com') ||
+      process.env.NODE_ENV === 'development'
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Permissive for production demo
   },
-  apis: ['./src/routes/*.ts'], // Path to the API docs
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-request-id', 'Accept', 'Origin'],
+  exposedHeaders: ['x-request-id', 'Set-Cookie'],
+  optionsSuccessStatus: 200,
 };
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Request tracking
 app.use(requestId);
 
-// Security middleware (Hardened Helmet + CSP)
+// Security headers
 app.use(securityMiddleware);
-
-// Request tracking
-app.use(requestId);
-
-// RLS enforcement context
-app.use(rlsMiddleware);
 
 // Cookie parsing
 app.use(cookieParser());
 
-// CORS configuration
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow any origin in development to support mobile network IP testing
-      callback(null, true);
-    },
-    credentials: true,
-  })
-);
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// RLS enforcement context
+app.use(rlsMiddleware);
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 2000 : 100, // limit each IP to 100 requests per windowMs in production
-  message: 'Too many requests from this IP, please try again later.',
+  max: process.env.NODE_ENV === 'development' ? 5000 : 1000, // Generous limit for demo & dashboard polling
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.',
+  },
 });
 
 app.use('/api/', limiter);
-
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Prevent caching of sensitive API responses
 app.use('/api', (req, res, next) => {

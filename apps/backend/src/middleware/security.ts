@@ -2,20 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import prisma from '../database/prisma';
 
-// Helmet configuration for production
+// Helmet configuration for production API
 export const securityMiddleware = helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "http://localhost:*", "http://127.0.0.1:*"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
-    },
-  },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false, // CSP is for HTML responses; disable on API to prevent blocking client fetches
   hsts: {
     maxAge: 31536000,
     includeSubDomains: true,

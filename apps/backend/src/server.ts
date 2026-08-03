@@ -43,37 +43,78 @@ const PORT = process.env.PORT || 3001;
 app.set('trust proxy', 1);
 
 // CORS configuration (MUST be first before other middleware)
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   'https://agrotrace-web.onrender.com',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
-  process.env.FRONTEND_URL,
-  process.env.CORS_ORIGIN,
-].filter(Boolean) as string[];
+];
 
-const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith('.onrender.com') ||
-      process.env.NODE_ENV === 'development'
-    ) {
-      return callback(null, true);
-    }
-    return callback(null, true); // Permissive for production demo
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-request-id', 'Accept', 'Origin'],
-  exposedHeaders: ['x-request-id', 'Set-Cookie'],
-  optionsSuccessStatus: 200,
+const configuredAllowedOrigins = [process.env.FRONTEND_URL, process.env.CORS_ORIGIN]
+  .flatMap((value) => value?.split(',') ?? [])
+  .map((origin) => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...configuredAllowedOrigins]));
+
+const isAllowedOrigin = (origin?: string): boolean => {
+  if (!origin) return true;
+
+  const normalizedOrigin = origin.replace(/\/$/, '');
+  return (
+    allowedOrigins.includes(normalizedOrigin) ||
+    normalizedOrigin.endsWith('.onrender.com') ||
+    process.env.NODE_ENV === 'development'
+  );
 };
 
+const resolveCorsOrigin = (origin?: string): string | boolean => {
+  if (!origin) return true;
+
+  // This app is a public demo API and auth is protected by JWT, not by CORS.
+  // Echo unknown browser origins instead of omitting CORS headers, because Render
+  // preview/custom domains otherwise surface as opaque browser network errors.
+  if (!isAllowedOrigin(origin)) {
+    console.warn(`Allowing unconfigured CORS origin: ${origin}`);
+  }
+
+  return origin;
+};
+
+
+const corsMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'];
+const corsAllowedHeaders = ['Content-Type', 'Authorization', 'X-Requested-With', 'x-request-id', 'Accept', 'Origin'];
+const corsExposedHeaders = ['x-request-id', 'Set-Cookie'];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => callback(null, resolveCorsOrigin(origin)),
+  credentials: true,
+  methods: corsMethods,
+  allowedHeaders: corsAllowedHeaders,
+  exposedHeaders: corsExposedHeaders,
+  optionsSuccessStatus: 204,
+};
+
+
+// Render/login requests must receive CORS headers even for preflight and early error paths.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const corsOrigin = resolveCorsOrigin(origin);
+  if (corsOrigin) {
+    res.header('Access-Control-Allow-Origin', typeof corsOrigin === 'string' ? corsOrigin : '*');
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', corsMethods.join(', '));
+    res.header('Access-Control-Allow-Headers', corsAllowedHeaders.join(', '));
+    res.header('Access-Control-Expose-Headers', corsExposedHeaders.join(', '));
+  }
+
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  return next();
+});
+
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 // Request tracking
 app.use(requestId);

@@ -108,8 +108,10 @@ router.get('/stats', authenticate, isAdmin, async (req: AuthRequest, res: Respon
       orderBy: { timestamp: 'desc' },
     });
 
-    const userIds = auditLogs.map(log => log.userId).filter(Boolean);
-    const users = await prisma.user.findMany({
+    const userIds = auditLogs
+      .map(log => log.userId)
+      .filter((userId): userId is string => Boolean(userId));
+    const users: Array<{ id: string; firstName: string; lastName: string }> = await prisma.user.findMany({
       where: { id: { in: userIds } },
       select: { id: true, firstName: true, lastName: true }
     });

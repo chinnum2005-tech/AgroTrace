@@ -43,37 +43,61 @@ const PORT = process.env.PORT || 3001;
 app.set('trust proxy', 1);
 
 // CORS configuration (MUST be first before other middleware)
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   'https://agrotrace-web.onrender.com',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
-  process.env.FRONTEND_URL,
-  process.env.CORS_ORIGIN,
-].filter(Boolean) as string[];
+];
+
+const configuredAllowedOrigins = [process.env.FRONTEND_URL, process.env.CORS_ORIGIN]
+  .flatMap((value) => value?.split(',') ?? [])
+  .map((origin) => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...configuredAllowedOrigins]));
+
+const isAllowedOrigin = (origin?: string): boolean => {
+  if (!origin) return true;
+
+  const normalizedOrigin = origin.replace(/\/$/, '');
+  return (
+    allowedOrigins.includes(normalizedOrigin) ||
+    normalizedOrigin.endsWith('.onrender.com') ||
+    process.env.NODE_ENV === 'development'
+  );
+};
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith('.onrender.com') ||
-      process.env.NODE_ENV === 'development'
-    ) {
-      return callback(null, true);
-    }
-    return callback(null, true); // Permissive for production demo
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-request-id', 'Accept', 'Origin'],
   exposedHeaders: ['x-request-id', 'Set-Cookie'],
-  optionsSuccessStatus: 200,
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+
+// Render/login requests must receive CORS headers even for preflight and early error paths.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (isAllowedOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', corsOptions.methods as string[]);
+    res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders as string[]);
+    res.header('Access-Control-Expose-Headers', corsOptions.exposedHeaders as string[]);
+  }
+
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  return next();
+});
 
 // Request tracking
 app.use(requestId);

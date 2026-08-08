@@ -28,8 +28,8 @@ class YieldPredictor:
             "SUNFLOWER", "SOYABEAN", "OILSEEDS", "SUGARCANE", "COTTON"
         ])
         
-        self.model_base = RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1)
-        self.model_fusion = RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1)
+        self.model_base = RandomForestRegressor(n_estimators=30, max_depth=14, min_samples_leaf=4, random_state=42, n_jobs=-1)
+        self.model_fusion = RandomForestRegressor(n_estimators=30, max_depth=14, min_samples_leaf=4, random_state=42, n_jobs=-1)
         self.is_trained = False
         
         self.r2_base = 0.0
@@ -309,8 +309,8 @@ class YieldPredictor:
     def save_model(self, path: str):
         """Save the trained models to disk"""
         os.makedirs(path, exist_ok=True)
-        joblib.dump(self.model_base, os.path.join(path, "yield_predictor_base.joblib"))
-        joblib.dump(self.model_fusion, os.path.join(path, "yield_predictor_fusion.joblib"))
+        joblib.dump(self.model_base, os.path.join(path, "yield_predictor_base.joblib"), compress=3)
+        joblib.dump(self.model_fusion, os.path.join(path, "yield_predictor_fusion.joblib"), compress=3)
         print(f"Models saved to {path}")
     
     def load_model(self, path: str):

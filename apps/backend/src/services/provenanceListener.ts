@@ -20,9 +20,20 @@ function getContractAddress(): string {
 
 export function startProvenanceListener() {
   try {
-    const rpcUrl = process.env.RPC_URL || 'http://localhost:8545';
+    const rpcUrl = process.env.RPC_URL;
+    if (!rpcUrl && process.env.NODE_ENV === 'production') {
+      console.log('ℹ️ RPC_URL not configured. PredictionProvenance listener skipped in production.');
+      return;
+    }
+    const targetRpc = rpcUrl || 'http://localhost:8545';
     const contractAddress = getContractAddress();
-    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const provider = new ethers.JsonRpcProvider(targetRpc);
+    
+    // Prevent unhandled errors from crashing node process
+    provider.on('error', (err) => {
+      console.warn('⚠️ JSON-RPC Provider warning:', err?.message || err);
+    });
+
     const contract = new ethers.Contract(contractAddress, PredictionProvenanceABI, provider);
 
     console.log(`📡 Starting background event listener for PredictionProvenance at ${contractAddress}...`);

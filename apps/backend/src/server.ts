@@ -39,75 +39,101 @@ import { errorHandler } from './middleware/errorHandler';
 const app: Application = express();
 const PORT = process.env.PORT || 3001;
 
-// Swagger definition
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'FarmConnect AI API',
-      version: '1.0.0',
-      description: 'API documentation for FarmConnect AI platform',
-    },
-    servers: [
-      {
-        url: `http://localhost:${PORT}/api/v1`,
-        description: 'Development server',
-      },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-  },
-  apis: ['./src/routes/*.ts'], // Path to the API docs
+// Trust reverse proxy (Render load balancer)
+app.set('trust proxy', 1);
+
+// CORS configuration (MUST be first before other middleware)
+const defaultAllowedOrigins = [
+  'https://agrotrace-web.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+];
+
+const configuredAllowedOrigins = [process.env.FRONTEND_URL, process.env.CORS_ORIGIN]
+  .flatMap((value) => value?.split(',') ?? [])
+  .map((origin) => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...configuredAllowedOrigins]));
+
+const isAllowedOrigin = (origin?: string): boolean => {
+  if (!origin) return true;
+
+  const normalizedOrigin = origin.replace(/\/$/, '');
+  return (
+    allowedOrigins.includes(normalizedOrigin) ||
+    normalizedOrigin.endsWith('.onrender.com') ||
+    process.env.NODE_ENV === 'development'
+  );
 };
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+const corsMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'];
+const corsAllowedHeaders = ['Content-Type', 'Authorization', 'X-Requested-With', 'x-request-id', 'Accept', 'Origin'];
+const corsExposedHeaders = ['x-request-id', 'Set-Cookie'];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
+  credentials: true,
+  methods: corsMethods,
+  allowedHeaders: corsAllowedHeaders,
+  exposedHeaders: corsExposedHeaders,
+  optionsSuccessStatus: 204,
+};
+
+
+// Render/login requests must receive CORS headers even for preflight and early error paths.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (isAllowedOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', corsMethods.join(', '));
+    res.header('Access-Control-Allow-Headers', corsAllowedHeaders.join(', '));
+    res.header('Access-Control-Expose-Headers', corsExposedHeaders.join(', '));
+  }
+
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  return next();
+});
+
+app.use(cors(corsOptions));
 
 // Request tracking
 app.use(requestId);
 
-// Security middleware (Hardened Helmet + CSP)
+// Security headers
 app.use(securityMiddleware);
-
-// Request tracking
-app.use(requestId);
-
-// RLS enforcement context
-app.use(rlsMiddleware);
 
 // Cookie parsing
 app.use(cookieParser());
 
-// CORS configuration
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow any origin in development to support mobile network IP testing
-      callback(null, true);
-    },
-    credentials: true,
-  })
-);
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// RLS enforcement context
+app.use(rlsMiddleware);
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 2000 : 100, // limit each IP to 100 requests per windowMs in production
-  message: 'Too many requests from this IP, please try again later.',
+  max: process.env.NODE_ENV === 'development' ? 5000 : 1000, // Generous limit for demo & dashboard polling
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.',
+  },
 });
 
 app.use('/api/', limiter);
-
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Prevent caching of sensitive API responses
 app.use('/api', (req, res, next) => {

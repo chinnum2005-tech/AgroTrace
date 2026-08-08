@@ -17,6 +17,12 @@ export const authService = {
     phone?: string;
   }) => {
     const response = await api.post('/api/auth/register', userData);
+    if (response.data?.data?.token) {
+      localStorage.setItem('token', response.data.data.token);
+    }
+    if (response.data?.data?.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
     return response.data;
   },
 
@@ -25,6 +31,12 @@ export const authService = {
    */
   login: async (email: string, password: string) => {
     const response = await api.post('/api/auth/login', { email, password });
+    if (response.data?.data?.token) {
+      localStorage.setItem('token', response.data.data.token);
+    }
+    if (response.data?.data?.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    }
     return response.data;
   },
 
@@ -37,6 +49,7 @@ export const authService = {
     } catch (e) {
       console.error('Logout failed:', e);
     }
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
 

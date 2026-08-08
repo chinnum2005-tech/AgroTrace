@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import health, prediction, recommendation, rag
+from routers import health, prediction, recommendation, rag, disease
 
 import os
 os.environ["LOKY_MAX_CPU_COUNT"] = "4" # Suppress joblib/loky CPU core warning
@@ -21,6 +21,7 @@ app.include_router(health.router)
 app.include_router(prediction.router)
 app.include_router(recommendation.router)
 app.include_router(rag.router)
+app.include_router(disease.router)
 
 @app.get("/")
 async def root():
@@ -28,4 +29,4 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

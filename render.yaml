@@ -4,7 +4,7 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: npm install --include=dev && cd packages/prisma && npm install --include=dev && npx prisma generate && cd ../../apps/backend && npm install --include=dev && npm run build && npx prisma migrate deploy
+    buildCommand: npm install --include=dev && cd packages/prisma && npm install --include=dev && npx prisma generate && cd ../../apps/backend && npm install --include=dev && npm run build
     startCommand: cd apps/backend && NODE_ENV=production npm run start
     envVars:
       - key: NODE_ENV
@@ -31,6 +31,12 @@ services:
         value: https://agrotrace-ml-inference.onrender.com
       - key: CORS_ORIGIN
         value: https://agrotrace-web.onrender.com
+      - key: AGMARKNET_API_KEY
+        value: 579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b
+      - key: AGMARKNET_BASE_URL
+        value: https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070
+      - key: NASA_POWER_API_KEY
+        sync: false
     healthCheckPath: /health
     autoDeploy: true
 

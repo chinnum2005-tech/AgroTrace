@@ -49,6 +49,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
       - key: PORT
         value: 10000
       - key: JWT_SECRET
@@ -68,6 +70,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
       - key: PORT
         value: 10000
     autoDeploy: true
@@ -75,11 +79,17 @@ services:
   - type: web
     name: agrotrace-web
     env: static
-    region: oregon
-    plan: free
     rootDir: apps/web
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm install @esbuild/linux-x64 @rollup/rollup-linux-x64-gnu && npm run build
     staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
+      - key: VITE_BACKEND_URL
+        value: https://agrotrace-backend.onrender.com
       - key: VITE_API_URL
         value: https://agrotrace-backend.onrender.com
+      - key: VITE_AI_SERVICE_URL
+        value: https://agrotrace-ai-service.onrender.com

@@ -30,6 +30,13 @@ const generateRefreshToken = (user: { id: string; email: string; role: string })
   );
 };
 
+// Helper for cookie options (supports cross-domain in production)
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+});
+
 export const register = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { email, password, firstName, lastName, role, phone }: RegisterInput = req.body;
@@ -59,12 +66,7 @@ export const register = async (req: AuthRequest, res: Response, next: NextFuncti
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
-    };
-
+    const cookieOptions = getCookieOptions();
     res.cookie('token', token, { ...cookieOptions, maxAge: 24 * 60 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
@@ -72,6 +74,8 @@ export const register = async (req: AuthRequest, res: Response, next: NextFuncti
       success: true,
       message: 'User registered successfully',
       data: {
+        token,
+        refreshToken,
         user: {
           id: user.id,
           email: user.email,
@@ -120,12 +124,7 @@ export const login = async (req: AuthRequest, res: Response, next: NextFunction)
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
-    };
-
+    const cookieOptions = getCookieOptions();
     res.cookie('token', token, { ...cookieOptions, maxAge: 24 * 60 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
@@ -133,6 +132,8 @@ export const login = async (req: AuthRequest, res: Response, next: NextFunction)
       success: true,
       message: 'Login successful',
       data: {
+        token,
+        refreshToken,
         user: {
           id: user.id,
           email: user.email,
@@ -196,7 +197,7 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
 
 export const refreshToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!refreshToken) {
       throw new AppError('Refresh token required', 400);
@@ -226,18 +227,14 @@ export const refreshToken = async (req: AuthRequest, res: Response, next: NextFu
     // Generate new access token
     const newToken = generateToken(user);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
-    };
-
+    const cookieOptions = getCookieOptions();
     res.cookie('token', newToken, { ...cookieOptions, maxAge: 24 * 60 * 60 * 1000 });
 
     res.json({
       success: true,
       message: 'Token refreshed successfully',
       data: {
+        token: newToken,
         expiresIn: process.env.JWT_EXPIRES_IN || '24h',
       },
     });
@@ -252,11 +249,7 @@ export const refreshToken = async (req: AuthRequest, res: Response, next: NextFu
 };
 
 export const logout = async (req: AuthRequest, res: Response) => {
-  const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
-  };
+  const cookieOptions = getCookieOptions();
   
   res.clearCookie('token', cookieOptions);
   res.clearCookie('refreshToken', cookieOptions);

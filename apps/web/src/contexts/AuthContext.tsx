@@ -31,6 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
+      const hasCachedSession = Boolean(localStorage.getItem('token') || localStorage.getItem('user'));
+      if (!hasCachedSession) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const currentUser = await authService.getMe();
         if (currentUser) {
